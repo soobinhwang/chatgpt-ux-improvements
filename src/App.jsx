@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import gptLogo from './gpt-logo.png'
 
 const sidebarTop = [
@@ -30,16 +30,11 @@ const projects = [
 ]
 
 const chats = [
-  { id: 'chat-1', label: 'ChatGPT Explanation' },
-  { id: 'chat-2', label: 'ChatGPT logo request' },
-  { id: 'chat-3', label: 'Visual Guideline Creation' },
-  { id: 'chat-4', label: 'Text format fix request' },
-  { id: 'chat-5', label: 'App review checklist' },
-  { id: 'chat-6', label: 'Chat GPT Logo Drawing' },
-  { id: 'chat-7', label: 'Portfolio Role Tips' },
-  { id: 'chat-8', label: 'CELPIP Task 1 Email' },
-  { id: 'chat-9', label: 'Portfolio Feedback System' },
-  { id: 'chat-10', label: 'Email Gratitude Response' },
+  { id: 'chat-1', label: 'Design feedback' },
+  { id: 'chat-2', label: 'Project ideas' },
+  { id: 'chat-3', label: 'Writing help' },
+  { id: 'chat-4', label: 'Research notes' },
+  { id: 'chat-5', label: 'Next steps' },
 ]
 
 const actionIcons = ['copy', 'thumb-up', 'thumb-down', 'share', 'repeat']
@@ -175,6 +170,51 @@ const Icon = ({ name, className }) => {
           <path d="M6 9l6 6 6-6" />
         </svg>
       )
+    case 'dots':
+      return (
+        <svg className={base} viewBox="0 0 24 24" fill="currentColor">
+          <circle cx="6" cy="12" r="1.6" />
+          <circle cx="12" cy="12" r="1.6" />
+          <circle cx="18" cy="12" r="1.6" />
+        </svg>
+      )
+    case 'group':
+      return (
+        <svg className={base} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+          <circle cx="9" cy="8" r="3" />
+          <circle cx="17" cy="9" r="2.5" />
+          <path d="M4 19a5 5 0 0 1 10 0" />
+          <path d="M14.5 19a4 4 0 0 1 6.5-2" />
+        </svg>
+      )
+    case 'pin':
+      return (
+        <svg className={base} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+          <path d="M8 3h8l-1.5 4.5 2.5 2.5-4.5 1.5-2 6-2-6L4 10l2.5-2.5L8 3z" />
+          <path d="M12 17v4" />
+        </svg>
+      )
+    case 'flag':
+      return (
+        <svg className={base} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+          <path d="M5 3v18" />
+          <path d="M5 4h10l-1.5 3 1.5 3H5" />
+        </svg>
+      )
+    case 'trash':
+      return (
+        <svg className={base} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+          <path d="M4 7h16" />
+          <path d="M9 7V4h6v3" />
+          <path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13" />
+        </svg>
+      )
+    case 'chevron-right':
+      return (
+        <svg className={base} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+          <path d="M9 6l6 6-6 6" />
+        </svg>
+      )
     case 'share':
       return (
         <svg className={base} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
@@ -235,6 +275,12 @@ const Icon = ({ name, className }) => {
           <path d="M8.5 6H14a4 4 0 0 1 4 4v5.5" />
         </svg>
       )
+    case 'back':
+      return (
+        <svg className={base} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <path d="M15 18l-6-6 6-6" />
+        </svg>
+      )
     case 'copy':
       return (
         <svg className={base} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
@@ -292,23 +338,108 @@ const SidebarSection = ({ title, children }) => (
   </div>
 )
 
-const TopBar = ({ title }) => (
-  <div className="flex items-center justify-between px-8 pt-6">
-    <div className="flex items-center gap-2 text-sm text-[#d9d9d9]">
-      <span className="font-medium">{title}</span>
-      <Icon name="caret" className="text-[#8d8d8d]" />
+const TopBar = ({
+  title,
+  onOpenBranches,
+  branchCount,
+  isBranchesActive,
+  showBranches,
+  showActions,
+  menuOpen,
+  setMenuOpen,
+}) => {
+  const menuRef = useRef(null)
+
+  useEffect(() => {
+    if (!menuOpen) return
+    const handleClick = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [menuOpen, setMenuOpen])
+
+  return (
+    <div className="flex items-center justify-between px-8 pt-6">
+      <div className="flex items-center gap-2 text-sm text-[#d9d9d9]">
+        <span className="font-medium">{title}</span>
+        <Icon name="caret" className="text-[#8d8d8d]" />
+      </div>
+      {showActions ? (
+        <div className="relative flex items-center gap-4 text-[#b0b0b0]" ref={menuRef}>
+          {showBranches ? (
+            <button
+              type="button"
+              onClick={onOpenBranches}
+              className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm transition ${
+                isBranchesActive
+                  ? 'border-[#3a3a3a] bg-[#242424] text-white'
+                  : 'border-[#2a2a2a] text-[#cfcfcf] hover:bg-[#2a2a2a]'
+              }`}
+            >
+              <Icon name="branch" className="text-white/80" />
+              <span>Branches</span>
+              {branchCount > 0 ? (
+                <span className="rounded-full bg-[#2a2a2a] px-2 text-xs text-[#d0d0d0]">{branchCount}</span>
+              ) : null}
+            </button>
+          ) : null}
+          <button
+            type="button"
+            className="flex items-center gap-2 rounded-full border border-[#2a2a2a] px-3 py-1.5 text-sm text-[#cfcfcf] transition hover:bg-[#2a2a2a]"
+          >
+            <Icon name="share" />
+            <span>Share</span>
+          </button>
+          <button
+            type="button"
+            aria-label="Menu"
+            onClick={() => setMenuOpen((prev) => !prev)}
+            className="rounded-full border border-[#2a2a2a] p-2 text-[#cfcfcf] transition hover:bg-[#2a2a2a]"
+          >
+            <Icon name="dots" />
+          </button>
+          {menuOpen ? (
+            <div className="absolute right-0 top-12 w-64 rounded-2xl border border-[#2a2a2a] bg-[#1f1f1f] p-2 text-sm text-[#e0e0e0] shadow-gpt-soft">
+              <button type="button" className="flex w-full items-center gap-3 rounded-xl px-3 py-2 hover:bg-[#2a2a2a]">
+                <Icon name="group" />
+                <span>Start a group chat</span>
+              </button>
+              <button type="button" className="flex w-full items-center justify-between rounded-xl px-3 py-2 hover:bg-[#2a2a2a]">
+                <span className="flex items-center gap-3">
+                  <Icon name="folder" />
+                  <span>Move to project</span>
+                </span>
+                <Icon name="chevron-right" className="text-[#8c8c8c]" />
+              </button>
+              <button type="button" className="flex w-full items-center gap-3 rounded-xl px-3 py-2 hover:bg-[#2a2a2a]">
+                <Icon name="pin" />
+                <span>Pin chat</span>
+              </button>
+              <button type="button" className="flex w-full items-center gap-3 rounded-xl px-3 py-2 hover:bg-[#2a2a2a]">
+                <Icon name="archive" />
+                <span>Archive</span>
+              </button>
+              <button type="button" className="flex w-full items-center gap-3 rounded-xl px-3 py-2 hover:bg-[#2a2a2a]">
+                <Icon name="flag" />
+                <span>Report</span>
+              </button>
+              <button
+                type="button"
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-red-400 hover:bg-[#2a2a2a]"
+              >
+                <Icon name="trash" className="text-red-400" />
+                <span>Delete</span>
+              </button>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
     </div>
-    <div className="flex items-center gap-4 text-[#b0b0b0]">
-      <button type="button" className="flex items-center gap-2 text-sm">
-        <Icon name="share" />
-        <span>Share</span>
-      </button>
-      <button type="button" aria-label="Menu" className="rounded-full p-2 hover:bg-[#2a2a2a]">
-        <Icon name="menu" />
-      </button>
-    </div>
-  </div>
-)
+  )
+}
 
 const ChatInput = ({ placeholder, quote, onClearQuote }) => (
   <div className="mx-auto w-full max-w-3xl px-6 pb-8">
@@ -356,8 +487,14 @@ const ChatInput = ({ placeholder, quote, onClearQuote }) => (
   </div>
 )
 
-const BranchInput = ({ placeholder }) => (
-  <div className="rounded-2xl border border-[#2a2a2a] bg-[#2b2b2b] px-3 py-3 shadow-gpt-soft">
+const BranchInput = ({ placeholder, value, onChange, onSend, disabled }) => (
+  <form
+    onSubmit={(event) => {
+      event.preventDefault()
+      onSend()
+    }}
+    className="rounded-full border border-[#2a2a2a] bg-[#2b2b2b] px-3 py-2 shadow-gpt-soft"
+  >
     <div className="flex items-center gap-3">
       <button
         type="button"
@@ -368,24 +505,167 @@ const BranchInput = ({ placeholder }) => (
       <input
         type="text"
         placeholder={placeholder}
-        className="flex-1 bg-transparent text-sm text-[#e8e8e8] placeholder:text-[#9b9b9b] focus:outline-none"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        disabled={disabled}
+        className="flex-1 bg-transparent text-sm text-[#e8e8e8] placeholder:text-[#9b9b9b] focus:outline-none disabled:opacity-50"
       />
       <button type="button" className="rounded-full p-2 text-[#9b9b9b] hover:text-white">
         <Icon name="mic" />
       </button>
-      <button type="button" className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1d4ed8] text-white">
+      <button
+        type="submit"
+        disabled={disabled || !value.trim()}
+        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1d4ed8] text-white disabled:opacity-50"
+      >
         <Icon name="voice" />
       </button>
     </div>
-  </div>
+  </form>
 )
+
+const BranchPanel = ({
+  open,
+  view,
+  branches,
+  activeBranch,
+  branchInput,
+  onBranchInputChange,
+  onSendBranchMessage,
+  onClose,
+  onBack,
+  onOpenBranch,
+}) => {
+  if (!open) return null
+
+  return (
+    <aside className="fixed right-6 top-20 z-40 flex h-[calc(100vh-6rem)] w-80 flex-col rounded-2xl border border-[#2a2a2a] bg-[#1b1b1b] shadow-gpt-soft">
+      <div className="flex items-center justify-between border-b border-[#2a2a2a] px-4 py-3 text-sm text-[#e0e0e0]">
+        <div className="flex items-center gap-2">
+          {view === 'active' ? (
+            <button
+              type="button"
+              onClick={onBack}
+              className="rounded-full p-1 text-[#9c9c9c] hover:bg-[#2a2a2a] hover:text-white"
+              aria-label="Back to history"
+            >
+              <Icon name="back" />
+            </button>
+          ) : null}
+          <span className="font-medium">{view === 'active' ? 'Branch chat' : 'Branch chats'}</span>
+          {view === 'history' && branches.length > 0 ? (
+            <span className="rounded-full bg-[#2a2a2a] px-2 text-xs text-[#d0d0d0]">{branches.length}</span>
+          ) : null}
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className="rounded-full p-1 text-[#9c9c9c] hover:bg-[#2a2a2a] hover:text-white"
+          aria-label="Close branches"
+        >
+          <Icon name="x" />
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-4 py-3 text-sm text-[#cfcfcf] scrollbar-thin">
+        {view === 'history' ? (
+          branches.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-[#2a2a2a] px-3 py-4 text-center text-[#9c9c9c]">
+              No branches yet. Create one from a selection.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {branches.map((branch) => (
+                <button
+                  key={branch.id}
+                  type="button"
+                  onClick={() => onOpenBranch(branch)}
+                  className="flex w-full flex-col gap-1 rounded-xl border border-[#2a2a2a] bg-[#242424] px-3 py-3 text-left transition hover:bg-[#2b2b2b]"
+                >
+                  <div className="flex items-center justify-between text-xs text-[#9c9c9c]">
+                    <span>Branch</span>
+                    <span>{branch.time}</span>
+                  </div>
+                  <div className="text-sm text-white">{branch.title}</div>
+                  <div className="text-xs text-[#b5b5b5]">{branch.snippet}</div>
+                </button>
+              ))}
+            </div>
+          )
+        ) : (
+            <div className="space-y-3">
+              {activeBranch ? (
+                <>
+                  <div className="rounded-xl bg-[#2f2f2f] px-3 py-2 text-xs text-[#cfcfcf]">
+                    Branching from: {formatSelectionLabel(activeBranch.seed)}
+                  </div>
+                  <div className="space-y-3">
+                    {activeBranch.messages.length === 0 ? (
+                      <p className="text-[#b7b7b7]">Start a focused branch conversation here.</p>
+                    ) : (
+                      activeBranch.messages.map((message) => (
+                        <div
+                          key={message.id}
+                          className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                        >
+                          <div
+                            className={`max-w-[85%] rounded-2xl px-3 py-2 text-xs ${
+                              message.role === 'user'
+                                ? 'bg-[#0b3f8f] text-white'
+                                : 'bg-[#2a2a2a] text-[#e0e0e0]'
+                            }`}
+                          >
+                            {message.content}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                    {activeBranch.isThinking ? (
+                      <div className="text-xs text-[#9c9c9c]">Thinking…</div>
+                    ) : null}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="rounded-xl border border-dashed border-[#2a2a2a] px-3 py-4 text-center text-[#9c9c9c]">
+                    No active branch yet. Create one from a selection.
+                  </div>
+                  <p className="text-[#b7b7b7]">Start a focused branch conversation here.</p>
+                </>
+              )}
+          </div>
+        )}
+      </div>
+
+      {view === 'active' ? (
+        <div className="border-t border-[#2a2a2a] px-4 py-4">
+          <BranchInput
+            placeholder="Ask in branch"
+            value={branchInput}
+            onChange={onBranchInputChange}
+            onSend={onSendBranchMessage}
+            disabled={!activeBranch}
+          />
+        </div>
+      ) : (
+        <div className="border-t border-[#2a2a2a] px-4 py-3 text-xs text-[#9c9c9c]">
+          Branch history is saved per chat.
+        </div>
+      )}
+    </aside>
+  )
+}
 
 export default function App() {
   const [activeChatId, setActiveChatId] = useState(null)
   const [selection, setSelection] = useState(null)
   const [quote, setQuote] = useState('')
-  const [isBranchOpen, setIsBranchOpen] = useState(false)
-  const [branchSeed, setBranchSeed] = useState('')
+  const [branches, setBranches] = useState([])
+  const [activeBranchId, setActiveBranchId] = useState(null)
+  const [branchInput, setBranchInput] = useState('')
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isBranchPanelOpen, setIsBranchPanelOpen] = useState(false)
+  const [branchView, setBranchView] = useState('history')
   const chatContainerRef = useRef(null)
   const getSelectableAncestor = (node) => {
     if (!node) return null
@@ -398,6 +678,11 @@ export default function App() {
     const match = chats.find((chat) => chat.id === activeChatId)
     return match?.label || 'ChatGPT 5.2'
   }, [activeChatId])
+
+  const activeBranch = useMemo(
+    () => branches.find((branch) => branch.id === activeBranchId) || null,
+    [branches, activeBranchId]
+  )
 
   const handleSelection = () => {
     const selectionObj = window.getSelection()
@@ -440,12 +725,74 @@ export default function App() {
 
   const handleCreateBranch = () => {
     if (!selection?.text) return
-    setBranchSeed(selection.text)
-    setIsBranchOpen(true)
+    const trimmed = selection.text.replace(/\s+/g, ' ').trim()
+    const entry = {
+      id: `branch-${Date.now()}`,
+      title: trimmed.length > 40 ? `${trimmed.slice(0, 40)}...` : trimmed,
+      snippet: formatSelectionLabel(trimmed),
+      time: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+      seed: trimmed,
+      messages: [],
+      isThinking: false,
+    }
+    setBranches((prev) => [entry, ...prev])
+    setActiveBranchId(entry.id)
+    setIsBranchPanelOpen(true)
+    setBranchView('active')
     setSelection(null)
     const selectionObj = window.getSelection()
     if (selectionObj) selectionObj.removeAllRanges()
   }
+
+  const sendBranchMessage = () => {
+    if (!activeBranch || !branchInput.trim()) return
+    const content = branchInput.trim()
+    const branchId = activeBranch.id
+    setBranchInput('')
+    setBranches((prev) =>
+      prev.map((branch) =>
+        branch.id === branchId
+          ? {
+              ...branch,
+              messages: [
+                ...branch.messages,
+                { id: `msg-${Date.now()}`, role: 'user', content },
+              ],
+              isThinking: true,
+            }
+          : branch
+      )
+    )
+
+    window.setTimeout(() => {
+      const response = `Got it. I'll focus this branch on: ${content}`
+      setBranches((prev) =>
+        prev.map((branch) =>
+          branch.id === branchId
+            ? {
+                ...branch,
+                messages: [
+                  ...branch.messages,
+                  { id: `msg-${Date.now()}-a`, role: 'assistant', content: response },
+                ],
+                isThinking: false,
+              }
+            : branch
+        )
+      )
+    }, 700)
+  }
+
+  useEffect(() => {
+    if (!activeBranchId) return
+    setBranchInput('')
+  }, [activeBranchId])
+
+  useEffect(() => {
+    if (!activeChatId) {
+      setIsMenuOpen(false)
+    }
+  }, [activeChatId])
 
   return (
     <div className="min-h-screen bg-gpt-bg text-gpt-text">
@@ -468,7 +815,12 @@ export default function App() {
                   icon={item.icon}
                   label={item.label}
                   onClick={() => {
-                    if (item.id === 'new') setActiveChatId(null)
+                    if (item.id === 'new') {
+                      setActiveChatId(null)
+                      setIsBranchPanelOpen(false)
+                      setBranchView('history')
+                      setActiveBranchId(null)
+                    }
                   }}
                   muted={false}
                 />
@@ -526,7 +878,23 @@ export default function App() {
         </aside>
 
         <main className="relative flex flex-1 flex-col overflow-hidden">
-          <TopBar title="ChatGPT 5.2" />
+          <TopBar
+            title="ChatGPT 5.2"
+            onOpenBranches={() => {
+              if (isBranchPanelOpen && branchView === 'history') {
+                setIsBranchPanelOpen(false)
+              } else {
+                setIsBranchPanelOpen(true)
+                setBranchView('history')
+              }
+            }}
+            branchCount={branches.length}
+            isBranchesActive={isBranchPanelOpen && branchView === 'history'}
+            showBranches={Boolean(activeChatId)}
+            showActions={Boolean(activeChatId)}
+            menuOpen={isMenuOpen}
+            setMenuOpen={setIsMenuOpen}
+          />
 
           {!activeChatId ? (
             <div className="flex flex-1 flex-col items-center justify-center px-6">
@@ -537,90 +905,77 @@ export default function App() {
             </div>
           ) : (
             <div className="relative flex flex-1 flex-col">
+              <BranchPanel
+                open={isBranchPanelOpen}
+                view={branchView}
+                branches={branches}
+                activeBranch={activeBranch}
+                branchInput={branchInput}
+                onBranchInputChange={setBranchInput}
+                onSendBranchMessage={sendBranchMessage}
+                onClose={() => setIsBranchPanelOpen(false)}
+                onBack={() => setBranchView('history')}
+                onOpenBranch={(branch) => {
+                  setActiveBranchId(branch.id)
+                  setIsBranchPanelOpen(true)
+                  setBranchView('active')
+                }}
+              />
               <div
                 ref={chatContainerRef}
                 onMouseUp={handleSelection}
-                className="selection-highlight flex-1 overflow-y-auto px-8 pb-32 pt-6 scrollbar-thin"
+                className={`selection-highlight flex-1 overflow-y-auto px-8 pb-32 pt-6 scrollbar-thin ${
+                  isBranchPanelOpen ? 'pr-[22rem]' : ''
+                }`}
               >
-                <div className={`mx-auto flex w-full max-w-[72rem] gap-6 ${isBranchOpen ? 'pr-2' : ''}`}>
-                  <div className="min-w-0 flex-1">
-                    <div className="mx-auto flex max-w-3xl flex-col gap-6">
-                      {chatMessages.map((message) => {
-                        if (message.role === 'user') {
-                          return (
-                            <div key={message.id} className="flex justify-end">
-                              <div className="max-w-xl rounded-2xl bg-[#0b3f8f] px-4 py-3 text-sm text-white shadow-gpt-soft">
-                                <p className="leading-relaxed">{message.content}</p>
-                              </div>
-                            </div>
-                          )
-                        }
-
-                        return (
-                          <div
-                            key={message.id}
-                            className="text-sm leading-relaxed text-[#e5e5e5]"
-                            data-selectable="assistant"
-                          >
-                            <p className="text-base font-semibold text-white">{message.title}</p>
-                            <div className="mt-4 space-y-4 text-[#d6d6d6]">
-                              {message.items.map((item, index) => (
-                                <div key={item.title} className="space-y-1">
-                                  <p className="font-semibold text-white">
-                                    {index + 1}. {item.title}
-                                  </p>
-                                  <p className="text-[#b5b5b5]">{item.body}</p>
-                                </div>
-                              ))}
-                            </div>
-                            <p className="mt-5 text-[#b5b5b5]">{message.footer}</p>
-
-                            <div className="mt-6 flex items-center gap-3 text-[#8f8f8f]">
-                              {actionIcons.map((icon) => (
-                                <button key={icon} type="button" className="rounded-full p-2 hover:bg-[#2a2a2a]">
-                                  <Icon name={icon} />
-                                </button>
-                              ))}
-                            </div>
+                <div className="mx-auto flex max-w-3xl flex-col gap-6">
+                  {chatMessages.map((message) => {
+                    if (message.role === 'user') {
+                      return (
+                        <div key={message.id} className="flex justify-end">
+                          <div className="max-w-xl rounded-2xl bg-[#0b3f8f] px-4 py-3 text-sm text-white shadow-gpt-soft">
+                            <p className="leading-relaxed">{message.content}</p>
                           </div>
-                        )
-                      })}
-                    </div>
-                  </div>
+                        </div>
+                      )
+                    }
 
-                  {isBranchOpen ? (
-                    <aside className="flex w-[22rem] flex-shrink-0 flex-col rounded-2xl bg-[#242424] p-4 shadow-gpt-soft">
-                      <div className="mb-3 flex items-center justify-between text-sm text-[#d0d0d0]">
-                        <span className="font-medium">Branch chat</span>
-                        <button
-                          type="button"
-                          onClick={() => setIsBranchOpen(false)}
-                          className="rounded-full p-1 text-[#9c9c9c] hover:bg-[#2a2a2a] hover:text-white"
-                          aria-label="Close branch"
-                        >
-                          <Icon name="x" />
-                        </button>
+                    return (
+                      <div
+                        key={message.id}
+                        className="text-sm leading-relaxed text-[#e5e5e5]"
+                        data-selectable="assistant"
+                      >
+                        <p className="text-base font-semibold text-white">{message.title}</p>
+                        <div className="mt-4 space-y-4 text-[#d6d6d6]">
+                          {message.items.map((item, index) => (
+                            <div key={item.title} className="space-y-1">
+                              <p className="font-semibold text-white">
+                                {index + 1}. {item.title}
+                              </p>
+                              <p className="text-[#b5b5b5]">{item.body}</p>
+                            </div>
+                          ))}
+                        </div>
+                        <p className="mt-5 text-[#b5b5b5]">{message.footer}</p>
+
+                        <div className="mt-6 flex items-center gap-3 text-[#8f8f8f]">
+                          {actionIcons.map((icon) => (
+                            <button key={icon} type="button" className="rounded-full p-2 hover:bg-[#2a2a2a]">
+                              <Icon name={icon} />
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                      <div className="flex-1 space-y-3 overflow-y-auto text-sm text-[#dcdcdc] scrollbar-thin">
-                        {branchSeed ? (
-                          <div className="rounded-xl bg-[#2f2f2f] px-3 py-2 text-xs text-[#cfcfcf]">
-                            Branching from: {formatSelectionLabel(branchSeed)}
-                          </div>
-                        ) : null}
-                        <p className="text-[#b7b7b7]">Start a focused branch conversation here.</p>
-                      </div>
-                      <div className="pt-4">
-                        <BranchInput placeholder="Ask in branch" />
-                      </div>
-                    </aside>
-                  ) : null}
+                    )
+                  })}
                 </div>
               </div>
               <div
                 className="pointer-events-none fixed bottom-6 z-20 flex justify-center"
                 style={{
                   left: '18rem',
-                  right: isBranchOpen ? 'calc(1.5rem + 22rem + 1.5rem)' : '1.5rem',
+                  right: isBranchPanelOpen ? 'calc(1.5rem + 20rem + 1.5rem)' : '1.5rem',
                 }}
               >
                 <div className="pointer-events-auto w-full max-w-3xl">
@@ -661,9 +1016,9 @@ export default function App() {
                   >
                     <span className="flex items-center gap-2">
                       <Icon name="branch" className="text-white/80" />
-                      <span>Create branch</span>
-                    </span>
-                  </button>
+                    <span>Create Branch</span>
+                  </span>
+                </button>
                 </div>
               </div>
             </div>
