@@ -225,6 +225,16 @@ const Icon = ({ name, className }) => {
           <path d="M5 11c4.5 0 8.5-2 12-6" />
         </svg>
       )
+    case 'branch':
+      return (
+        <svg className={base} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <circle cx="6" cy="6" r="2.5" />
+          <circle cx="6" cy="18" r="2.5" />
+          <circle cx="18" cy="18" r="2.5" />
+          <path d="M6 8.5v7" />
+          <path d="M8.5 6H14a4 4 0 0 1 4 4v5.5" />
+        </svg>
+      )
     case 'copy':
       return (
         <svg className={base} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
@@ -346,11 +356,43 @@ const ChatInput = ({ placeholder, quote, onClearQuote }) => (
   </div>
 )
 
+const BranchInput = ({ placeholder }) => (
+  <div className="rounded-2xl border border-[#2a2a2a] bg-[#2b2b2b] px-3 py-3 shadow-gpt-soft">
+    <div className="flex items-center gap-3">
+      <button
+        type="button"
+        className="flex h-8 w-8 items-center justify-center rounded-full border border-[#3a3a3a] text-white/90"
+      >
+        <Icon name="plus" />
+      </button>
+      <input
+        type="text"
+        placeholder={placeholder}
+        className="flex-1 bg-transparent text-sm text-[#e8e8e8] placeholder:text-[#9b9b9b] focus:outline-none"
+      />
+      <button type="button" className="rounded-full p-2 text-[#9b9b9b] hover:text-white">
+        <Icon name="mic" />
+      </button>
+      <button type="button" className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1d4ed8] text-white">
+        <Icon name="voice" />
+      </button>
+    </div>
+  </div>
+)
+
 export default function App() {
   const [activeChatId, setActiveChatId] = useState(null)
   const [selection, setSelection] = useState(null)
   const [quote, setQuote] = useState('')
+  const [isBranchOpen, setIsBranchOpen] = useState(false)
+  const [branchSeed, setBranchSeed] = useState('')
   const chatContainerRef = useRef(null)
+  const getSelectableAncestor = (node) => {
+    if (!node) return null
+    const element = node.nodeType === 1 ? node : node.parentElement
+    if (!element) return null
+    return element.closest('[data-selectable="assistant"]')
+  }
 
   const activeChatLabel = useMemo(() => {
     const match = chats.find((chat) => chat.id === activeChatId)
@@ -373,6 +415,12 @@ export default function App() {
       setSelection(null)
       return
     }
+    const assistantAnchor = getSelectableAncestor(selectionObj.anchorNode)
+    const assistantFocus = getSelectableAncestor(selectionObj.focusNode)
+    if (!assistantAnchor || !assistantFocus || assistantAnchor !== assistantFocus) {
+      setSelection(null)
+      return
+    }
     const range = selectionObj.getRangeAt(0)
     const rect = range.getBoundingClientRect()
     if (!rect || rect.width === 0) {
@@ -385,6 +433,15 @@ export default function App() {
   const handleAsk = () => {
     if (!selection?.text) return
     setQuote(selection.text)
+    setSelection(null)
+    const selectionObj = window.getSelection()
+    if (selectionObj) selectionObj.removeAllRanges()
+  }
+
+  const handleCreateBranch = () => {
+    if (!selection?.text) return
+    setBranchSeed(selection.text)
+    setIsBranchOpen(true)
     setSelection(null)
     const selectionObj = window.getSelection()
     if (selectionObj) selectionObj.removeAllRanges()
@@ -485,46 +542,87 @@ export default function App() {
                 onMouseUp={handleSelection}
                 className="selection-highlight flex-1 overflow-y-auto px-8 pb-32 pt-6 scrollbar-thin"
               >
-                <div className="mx-auto flex max-w-3xl flex-col gap-6">
-                  {chatMessages.map((message) => {
-                    if (message.role === 'user') {
-                      return (
-                        <div key={message.id} className="flex justify-end">
-                          <div className="max-w-xl rounded-2xl bg-[#0b3f8f] px-4 py-3 text-sm text-white shadow-gpt-soft">
-                            <p className="leading-relaxed">{message.content}</p>
-                          </div>
-                        </div>
-                      )
-                    }
-
-                    return (
-                      <div key={message.id} className="text-sm leading-relaxed text-[#e5e5e5]">
-                        <p className="text-base font-semibold text-white">{message.title}</p>
-                        <div className="mt-4 space-y-4 text-[#d6d6d6]">
-                          {message.items.map((item, index) => (
-                            <div key={item.title} className="space-y-1">
-                              <p className="font-semibold text-white">
-                                {index + 1}. {item.title}
-                              </p>
-                              <p className="text-[#b5b5b5]">{item.body}</p>
+                <div className={`mx-auto flex w-full max-w-[72rem] gap-6 ${isBranchOpen ? 'pr-2' : ''}`}>
+                  <div className="min-w-0 flex-1">
+                    <div className="mx-auto flex max-w-3xl flex-col gap-6">
+                      {chatMessages.map((message) => {
+                        if (message.role === 'user') {
+                          return (
+                            <div key={message.id} className="flex justify-end">
+                              <div className="max-w-xl rounded-2xl bg-[#0b3f8f] px-4 py-3 text-sm text-white shadow-gpt-soft">
+                                <p className="leading-relaxed">{message.content}</p>
+                              </div>
                             </div>
-                          ))}
-                        </div>
-                        <p className="mt-5 text-[#b5b5b5]">{message.footer}</p>
+                          )
+                        }
 
-                        <div className="mt-6 flex items-center gap-3 text-[#8f8f8f]">
-                          {actionIcons.map((icon) => (
-                            <button key={icon} type="button" className="rounded-full p-2 hover:bg-[#2a2a2a]">
-                              <Icon name={icon} />
-                            </button>
-                          ))}
-                        </div>
+                        return (
+                          <div
+                            key={message.id}
+                            className="text-sm leading-relaxed text-[#e5e5e5]"
+                            data-selectable="assistant"
+                          >
+                            <p className="text-base font-semibold text-white">{message.title}</p>
+                            <div className="mt-4 space-y-4 text-[#d6d6d6]">
+                              {message.items.map((item, index) => (
+                                <div key={item.title} className="space-y-1">
+                                  <p className="font-semibold text-white">
+                                    {index + 1}. {item.title}
+                                  </p>
+                                  <p className="text-[#b5b5b5]">{item.body}</p>
+                                </div>
+                              ))}
+                            </div>
+                            <p className="mt-5 text-[#b5b5b5]">{message.footer}</p>
+
+                            <div className="mt-6 flex items-center gap-3 text-[#8f8f8f]">
+                              {actionIcons.map((icon) => (
+                                <button key={icon} type="button" className="rounded-full p-2 hover:bg-[#2a2a2a]">
+                                  <Icon name={icon} />
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  {isBranchOpen ? (
+                    <aside className="flex w-[22rem] flex-shrink-0 flex-col rounded-2xl bg-[#242424] p-4 shadow-gpt-soft">
+                      <div className="mb-3 flex items-center justify-between text-sm text-[#d0d0d0]">
+                        <span className="font-medium">Branch chat</span>
+                        <button
+                          type="button"
+                          onClick={() => setIsBranchOpen(false)}
+                          className="rounded-full p-1 text-[#9c9c9c] hover:bg-[#2a2a2a] hover:text-white"
+                          aria-label="Close branch"
+                        >
+                          <Icon name="x" />
+                        </button>
                       </div>
-                    )
-                  })}
+                      <div className="flex-1 space-y-3 overflow-y-auto text-sm text-[#dcdcdc] scrollbar-thin">
+                        {branchSeed ? (
+                          <div className="rounded-xl bg-[#2f2f2f] px-3 py-2 text-xs text-[#cfcfcf]">
+                            Branching from: {formatSelectionLabel(branchSeed)}
+                          </div>
+                        ) : null}
+                        <p className="text-[#b7b7b7]">Start a focused branch conversation here.</p>
+                      </div>
+                      <div className="pt-4">
+                        <BranchInput placeholder="Ask in branch" />
+                      </div>
+                    </aside>
+                  ) : null}
                 </div>
               </div>
-              <div className="pointer-events-none fixed bottom-6 left-[18rem] right-6 z-20 flex justify-center">
+              <div
+                className="pointer-events-none fixed bottom-6 z-20 flex justify-center"
+                style={{
+                  left: '18rem',
+                  right: isBranchOpen ? 'calc(1.5rem + 22rem + 1.5rem)' : '1.5rem',
+                }}
+              >
                 <div className="pointer-events-auto w-full max-w-3xl">
                   <ChatInput placeholder="Ask anything" quote={quote} onClearQuote={() => setQuote('')} />
                 </div>
@@ -533,23 +631,42 @@ export default function App() {
           )}
 
           {selection ? (
-            <button
-              type="button"
-              onClick={handleAsk}
+            <div
               style={{
-                top: Math.max(16, selection.rect.top - 44),
+                top: Math.max(16, selection.rect.top - 104),
                 left: selection.rect.left + selection.rect.width / 2,
               }}
-              className="fixed z-50 -translate-x-1/2 rounded-full border border-[#2a2a2a] bg-[#1f1f1f] px-4 py-2 text-sm text-white shadow-gpt-soft transition hover:bg-[#2a2a2a]"
+              className="fixed z-50 -translate-x-1/2"
             >
-              <span className="flex items-center gap-2">
-                <svg className="h-4 w-4 text-white/80" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M9 7a3 3 0 0 0-3 3v3h3v4H5v-7a5 5 0 0 1 5-5h1v2H9z" />
-                  <path d="M19 7a3 3 0 0 0-3 3v3h3v4h-4v-7a5 5 0 0 1 5-5h1v2h-2z" />
-                </svg>
-                <span>Ask ChatGPT</span>
-              </span>
-            </button>
+              <div className="rounded-[22px] border border-[#2a2a2a] bg-[#1f1f1f] p-2 shadow-gpt-soft">
+                <div className="flex flex-col gap-2">
+                  <button
+                    type="button"
+                    onClick={handleAsk}
+                    className="rounded-full bg-[#1f1f1f] px-5 py-2 text-sm text-white transition hover:bg-[#2a2a2a]"
+                  >
+                    <span className="flex items-center gap-2">
+                      <svg className="h-4 w-4 text-white/80" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M9 7a3 3 0 0 0-3 3v3h3v4H5v-7a5 5 0 0 1 5-5h1v2H9z" />
+                        <path d="M19 7a3 3 0 0 0-3 3v3h3v4h-4v-7a5 5 0 0 1 5-5h1v2h-2z" />
+                      </svg>
+                      <span>Ask ChatGPT</span>
+                    </span>
+                  </button>
+                  <div className="h-px w-full bg-white/5" />
+                  <button
+                    type="button"
+                    onClick={handleCreateBranch}
+                    className="rounded-full bg-[#1f1f1f] px-5 py-2 text-sm text-white transition hover:bg-[#2a2a2a]"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Icon name="branch" className="text-white/80" />
+                      <span>Create branch</span>
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </div>
           ) : null}
         </main>
       </div>
