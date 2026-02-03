@@ -44,10 +44,53 @@ const chats = [
 
 const actionIcons = ['copy', 'thumb-up', 'thumb-down', 'share', 'repeat']
 
+const chatMessages = [
+  {
+    id: 'u1',
+    role: 'user',
+    content:
+      'It’s a toy project where I improve or add new features to a current GPT browser interface for UX improvement.',
+  },
+  {
+    id: 'a1',
+    role: 'assistant',
+    title: 'Here are a few cleaner, more natural options for that GitHub repo description (pick the one that matches your tone):',
+    items: [
+      {
+        title: 'Short + clear (recommended)',
+        body:
+          'A toy project where I improve the current ChatGPT browser interface by adding UX-focused features and enhancements.',
+      },
+      {
+        title: 'Slightly more “product-y”',
+        body:
+          'A toy project exploring UX improvements to the ChatGPT browser interface through new features, UI refinements, and usability tweaks.',
+      },
+      {
+        title: 'More casual',
+        body:
+          'A small side project where I experiment with improving the ChatGPT browser UI and adding helpful UX features.',
+      },
+      {
+        title: 'More specific about intent',
+        body:
+          'A toy project to prototype and test UX improvements for the ChatGPT browser interface, including feature additions and interaction polish.',
+      },
+    ],
+    footer:
+      'If you tell me whether you want it to sound more professional or more casual, I’ll narrow this to one final best version (and I can also suggest a tighter repo name + README one-liner).',
+  },
+  {
+    id: 'u2',
+    role: 'user',
+    content: 'What would the repository name be?',
+  },
+]
+
 const formatSelectionLabel = (text) => {
   const trimmed = text.replace(/\s+/g, ' ').trim()
-  if (trimmed.length <= 80) return `"${trimmed}"`
-  return `"${trimmed.slice(0, 80)}..."`
+  if (trimmed.length <= 80) return `“${trimmed}”`
+  return `“${trimmed.slice(0, 80)}...”`
 }
 
 const Icon = ({ name, className }) => {
@@ -175,6 +218,13 @@ const Icon = ({ name, className }) => {
           <path d="M6 6l12 12M6 18L18 6" />
         </svg>
       )
+    case 'reply':
+      return (
+        <svg className={base} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <path d="M9 7H5v4" />
+          <path d="M5 11c4.5 0 8.5-2 12-6" />
+        </svg>
+      )
     case 'copy':
       return (
         <svg className={base} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
@@ -252,37 +302,46 @@ const TopBar = ({ title }) => (
 
 const ChatInput = ({ placeholder, quote, onClearQuote }) => (
   <div className="mx-auto w-full max-w-3xl px-6 pb-8">
-    {quote ? (
-      <div className="mb-3 flex items-center justify-between rounded-lg bg-[#2b2b2b] px-4 py-3 text-sm text-[#d6d6d6]">
-        <span className="truncate">{formatSelectionLabel(quote)}</span>
+    <div
+      className={`border border-[#2a2a2a] bg-[#2b2b2b] shadow-gpt-soft ${
+        quote ? 'rounded-2xl px-3 py-3' : 'rounded-full px-4 py-3'
+      }`}
+    >
+      {quote ? (
+        <div className="mb-2 flex items-center justify-between rounded-xl bg-[#3a3a3a] px-3 py-2 text-sm text-[#d6d6d6]">
+          <span className="flex min-w-0 items-center gap-2 text-[#e0e0e0]">
+            <Icon name="reply" className="text-[#b5b5b5]" />
+            <span className="truncate">{formatSelectionLabel(quote)}</span>
+          </span>
+          <button
+            type="button"
+            onClick={onClearQuote}
+            className="ml-3 rounded-full p-1 text-[#9c9c9c] hover:text-white"
+            aria-label="Clear selection"
+          >
+            <Icon name="x" />
+          </button>
+        </div>
+      ) : null}
+      <div className={`flex items-center gap-3 ${quote ? 'px-1' : ''}`}>
         <button
           type="button"
-          onClick={onClearQuote}
-          className="ml-3 rounded-full p-1 text-[#9c9c9c] hover:text-white"
-          aria-label="Clear selection"
+          className="flex h-8 w-8 items-center justify-center rounded-full border border-[#3a3a3a] text-white/90"
         >
-          <Icon name="x" />
+          <Icon name="plus" />
+        </button>
+        <input
+          type="text"
+          placeholder={placeholder}
+          className="flex-1 bg-transparent text-sm text-[#e8e8e8] placeholder:text-[#9b9b9b] focus:outline-none"
+        />
+        <button type="button" className="rounded-full p-2 text-[#9b9b9b] hover:text-white">
+          <Icon name="mic" />
+        </button>
+        <button type="button" className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1d4ed8] text-white">
+          <Icon name="voice" />
         </button>
       </div>
-    ) : null}
-    <div className="flex items-center gap-3 rounded-full border border-[#2a2a2a] bg-[#2b2b2b] px-4 py-3 shadow-gpt-soft">
-      <button
-        type="button"
-        className="flex h-8 w-8 items-center justify-center rounded-full border border-[#3a3a3a] text-white/90"
-      >
-        <Icon name="plus" />
-      </button>
-      <input
-        type="text"
-        placeholder={placeholder}
-        className="flex-1 bg-transparent text-sm text-[#e8e8e8] placeholder:text-[#9b9b9b] focus:outline-none"
-      />
-      <button type="button" className="rounded-full p-2 text-[#9b9b9b] hover:text-white">
-        <Icon name="mic" />
-      </button>
-      <button type="button" className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1d4ed8] text-white">
-        <Icon name="voice" />
-      </button>
     </div>
   </div>
 )
@@ -410,85 +469,66 @@ export default function App() {
         </aside>
 
         <main className="relative flex flex-1 flex-col overflow-hidden">
-          <TopBar title={activeChatId ? 'ChatGPT 5.2 Thinking' : 'ChatGPT 5.2'} />
+          <TopBar title="ChatGPT 5.2" />
 
           {!activeChatId ? (
             <div className="flex flex-1 flex-col items-center justify-center px-6">
-              <h1 className="text-3xl font-semibold text-white">Hey, Sue. Ready to dive in?</h1>
+              <h1 className="text-3xl font-medium text-white">Hey, Sue. Ready to dive in?</h1>
               <div className="mt-10 w-full">
                 <ChatInput placeholder="Ask anything" />
               </div>
             </div>
           ) : (
-            <div className="flex flex-1 flex-col">
+            <div className="relative flex flex-1 flex-col">
               <div
                 ref={chatContainerRef}
                 onMouseUp={handleSelection}
-                className="selection-highlight flex-1 overflow-y-auto px-8 pb-10 pt-6 scrollbar-thin"
+                className="selection-highlight flex-1 overflow-y-auto px-8 pb-32 pt-6 scrollbar-thin"
               >
-                <div className="mx-auto max-w-3xl">
-                  <div className="rounded-2xl bg-[#202020] p-6 text-sm leading-relaxed text-[#e5e5e5] shadow-gpt-soft">
-                    <div className="space-y-4">
-                      <div className="space-y-1">
-                        <p className="font-semibold">Target API level requirements (release/update blockers)</p>
-                        <p className="text-[#b5b5b5]">
-                          Example: Starting Aug 31, 2025, new apps/updates must target Android 15 (API 35).
-                        </p>
-                      </div>
-                      <div className="space-y-1">
-                        <p className="font-semibold">Data safety section (Play Console data safety form)</p>
-                        <p className="text-[#b5b5b5]">
-                          How to disclose data collection/sharing in Play Console.
-                        </p>
-                      </div>
-                      <div className="space-y-1">
-                        <p className="font-semibold">Payments policy + Play Billing</p>
-                        <p className="text-[#b5b5b5]">
-                          Requirements and exemptions for digital goods/services.
-                        </p>
-                      </div>
-                      <div className="space-y-1">
-                        <p className="font-semibold">Core App Quality guidelines</p>
-                        <p className="text-[#b5b5b5]">
-                          General quality checklist covering crashes, UX, and stability.
-                        </p>
-                      </div>
-                      <div className="space-y-1">
-                        <p className="font-semibold">Families Policies</p>
-                        <p className="text-[#b5b5b5]">
-                          Extra rules for apps that may be used by children or families.
-                        </p>
-                      </div>
-                    </div>
+                <div className="mx-auto flex max-w-3xl flex-col gap-6">
+                  {chatMessages.map((message) => {
+                    if (message.role === 'user') {
+                      return (
+                        <div key={message.id} className="flex justify-end">
+                          <div className="max-w-xl rounded-2xl bg-[#0b3f8f] px-4 py-3 text-sm text-white shadow-gpt-soft">
+                            <p className="leading-relaxed">{message.content}</p>
+                          </div>
+                        </div>
+                      )
+                    }
 
-                    <div className="mt-8 space-y-4">
-                      <p className="text-base font-semibold">
-                        Next steps (tell me what fits your app and I will tailor the checklist)
-                      </p>
-                      <ol className="list-decimal space-y-2 pl-5 text-[#d6d6d6]">
-                        <li>Is login required?</li>
-                        <li>Any paid features or subscriptions?</li>
-                        <li>What permissions are used (camera, location, contacts)?</li>
-                        <li>Any UGC (posts/comments/chat)?</li>
-                        <li>Could minors use the app?</li>
-                      </ol>
-                    </div>
+                    return (
+                      <div key={message.id} className="text-sm leading-relaxed text-[#e5e5e5]">
+                        <p className="text-base font-semibold text-white">{message.title}</p>
+                        <div className="mt-4 space-y-4 text-[#d6d6d6]">
+                          {message.items.map((item, index) => (
+                            <div key={item.title} className="space-y-1">
+                              <p className="font-semibold text-white">
+                                {index + 1}. {item.title}
+                              </p>
+                              <p className="text-[#b5b5b5]">{item.body}</p>
+                            </div>
+                          ))}
+                        </div>
+                        <p className="mt-5 text-[#b5b5b5]">{message.footer}</p>
 
-                    <div className="mt-6 flex items-center gap-2 text-xs text-[#9c9c9c]">
-                      <span className="rounded-full bg-[#2a2a2a] px-2 py-1">Sources</span>
-                    </div>
-
-                    <div className="mt-6 flex items-center gap-3 text-[#8f8f8f]">
-                      {actionIcons.map((icon) => (
-                        <button key={icon} type="button" className="rounded-full p-2 hover:bg-[#2a2a2a]">
-                          <Icon name={icon} />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                        <div className="mt-6 flex items-center gap-3 text-[#8f8f8f]">
+                          {actionIcons.map((icon) => (
+                            <button key={icon} type="button" className="rounded-full p-2 hover:bg-[#2a2a2a]">
+                              <Icon name={icon} />
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
-              <ChatInput placeholder="Ask anything" quote={quote} onClearQuote={() => setQuote('')} />
+              <div className="pointer-events-none fixed bottom-6 left-[18rem] right-6 z-20 flex justify-center">
+                <div className="pointer-events-auto w-full max-w-3xl">
+                  <ChatInput placeholder="Ask anything" quote={quote} onClearQuote={() => setQuote('')} />
+                </div>
+              </div>
             </div>
           )}
 
@@ -497,12 +537,18 @@ export default function App() {
               type="button"
               onClick={handleAsk}
               style={{
-                top: Math.max(16, selection.rect.top - 36),
+                top: Math.max(16, selection.rect.top - 44),
                 left: selection.rect.left + selection.rect.width / 2,
               }}
-              className="fixed z-50 -translate-x-1/2 rounded-full bg-[#2d2d2d] px-4 py-2 text-xs text-white shadow-gpt-soft"
+              className="fixed z-50 -translate-x-1/2 rounded-full border border-[#2a2a2a] bg-[#1f1f1f] px-4 py-2 text-sm text-white shadow-gpt-soft transition hover:bg-[#2a2a2a]"
             >
-              Ask ChatGPT
+              <span className="flex items-center gap-2">
+                <svg className="h-4 w-4 text-white/80" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M9 7a3 3 0 0 0-3 3v3h3v4H5v-7a5 5 0 0 1 5-5h1v2H9z" />
+                  <path d="M19 7a3 3 0 0 0-3 3v3h3v4h-4v-7a5 5 0 0 1 5-5h1v2h-2z" />
+                </svg>
+                <span>Ask ChatGPT</span>
+              </span>
             </button>
           ) : null}
         </main>
