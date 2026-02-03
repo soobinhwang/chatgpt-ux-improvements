@@ -46,48 +46,170 @@ const actionButtons = [
   { id: 'dots', label: 'More' },
 ]
 
-const chatMessages = [
-  {
-    id: 'u1',
-    role: 'user',
-    content:
-      'It’s a toy project where I improve or add new features to a current GPT browser interface for UX improvement.',
-  },
-  {
-    id: 'a1',
-    role: 'assistant',
-    title: 'Here are a few cleaner, more natural options for that GitHub repo description (pick the one that matches your tone):',
-    items: [
-      {
-        title: 'Short + clear (recommended)',
-        body:
-          'A toy project where I improve the current ChatGPT browser interface by adding UX-focused features and enhancements.',
-      },
-      {
-        title: 'Slightly more “product-y”',
-        body:
-          'A toy project exploring UX improvements to the ChatGPT browser interface through new features, UI refinements, and usability tweaks.',
-      },
-      {
-        title: 'More casual',
-        body:
-          'A small side project where I experiment with improving the ChatGPT browser UI and adding helpful UX features.',
-      },
-      {
-        title: 'More specific about intent',
-        body:
-          'A toy project to prototype and test UX improvements for the ChatGPT browser interface, including feature additions and interaction polish.',
-      },
-    ],
-    footer:
-      'If you tell me whether you want it to sound more professional or more casual, I’ll narrow this to one final best version (and I can also suggest a tighter repo name + README one-liner).',
-  },
-  {
-    id: 'u2',
-    role: 'user',
-    content: 'What would the repository name be?',
-  },
-]
+const defaultChatState = {
+  messages: [],
+  queue: [],
+  isThinking: false,
+  queueingEnabled: true,
+}
+
+const chatThreads = {
+  'chat-1': [
+    {
+      id: 'u1',
+      role: 'user',
+      content: 'Can you review this landing page hero for clarity and impact?',
+    },
+    {
+      id: 'a1',
+      role: 'assistant',
+      title: 'Design feedback summary (hero section)',
+      items: [
+        {
+          title: 'Value prop clarity',
+          body: 'Lead with a tighter promise in the first line; keep the benefit and audience in one sentence.',
+        },
+        {
+          title: 'Visual hierarchy',
+          body: 'Increase headline size slightly and reduce the subhead width to create a cleaner reading path.',
+        },
+        {
+          title: 'Primary action',
+          body: 'Use one dominant CTA and move the secondary action to a text link to reduce choice friction.',
+        },
+        {
+          title: 'Social proof',
+          body: 'Add a single line of credibility (logos or stat) just below the buttons to boost trust.',
+        },
+      ],
+      footer: 'If you share your target audience, I can tailor the copy and CTA wording.',
+    },
+  ],
+  'chat-2': [
+    {
+      id: 'u1',
+      role: 'user',
+      content: 'Give me a few side project ideas for a product designer.',
+    },
+    {
+      id: 'a1',
+      role: 'assistant',
+      title: 'Five project ideas tailored for a product designer',
+      items: [
+        {
+          title: 'Onboarding teardown + redesign',
+          body: 'Pick a popular app and redesign its onboarding for a specific persona.',
+        },
+        {
+          title: 'Feature backlog cleanup',
+          body: 'Turn a messy roadmap into a prioritized, user‑outcome focused plan.',
+        },
+        {
+          title: 'UX audit mini‑case study',
+          body: 'Run a heuristic audit and turn findings into 3 focused redesigns.',
+        },
+        {
+          title: 'AI prompt playground',
+          body: 'Design a small tool that helps users build and reuse effective prompts.',
+        },
+        {
+          title: 'Feedback loop prototype',
+          body: 'Design a lightweight feedback widget and its analytics summary.',
+        },
+      ],
+      footer: 'Tell me which one you like and I can scope it into a 1‑week plan.',
+    },
+  ],
+  'chat-3': [
+    {
+      id: 'u1',
+      role: 'user',
+      content: 'Rewrite this bio to be shorter and clearer.',
+    },
+    {
+      id: 'a1',
+      role: 'assistant',
+      title: 'Short, clear bio options',
+      items: [
+        {
+          title: 'Option A (direct)',
+          body: 'Product designer focused on clear flows, fast feedback, and measurable outcomes.',
+        },
+        {
+          title: 'Option B (collaborative)',
+          body: 'Product designer who pairs research with rapid prototyping to ship thoughtful UX.',
+        },
+        {
+          title: 'Option C (outcome‑oriented)',
+          body: 'I design product experiences that reduce friction and improve activation and retention.',
+        },
+      ],
+      footer: 'Share your target role and I’ll tune the tone.',
+    },
+  ],
+  'chat-4': [
+    {
+      id: 'u1',
+      role: 'user',
+      content: 'Summarize key themes from these interviews.',
+    },
+    {
+      id: 'a1',
+      role: 'assistant',
+      title: 'Interview synthesis: key themes',
+      items: [
+        {
+          title: 'Decision anxiety',
+          body: 'Users hesitate without clear defaults or guidance at key steps.',
+        },
+        {
+          title: 'Trust signals matter',
+          body: 'Security and legitimacy cues strongly influence willingness to proceed.',
+        },
+        {
+          title: 'Time pressure',
+          body: 'People prefer short flows and quick wins over complex setup.',
+        },
+        {
+          title: 'Desire for personalization',
+          body: 'Users want the product to “remember” their preferences.',
+        },
+      ],
+      footer: 'Want a journey map or a set of prioritized opportunities?',
+    },
+  ],
+  'chat-5': [
+    {
+      id: 'u1',
+      role: 'user',
+      content: 'What should I do next after user testing?',
+    },
+    {
+      id: 'a1',
+      role: 'assistant',
+      title: 'Suggested next steps',
+      items: [
+        {
+          title: 'Cluster issues by severity',
+          body: 'Group findings into critical, moderate, and minor to focus effort.',
+        },
+        {
+          title: 'Define the top 3 fixes',
+          body: 'Pick the smallest set of changes that improve task success.',
+        },
+        {
+          title: 'Prototype the changes',
+          body: 'Update the flow and validate quickly with 2–3 users.',
+        },
+        {
+          title: 'Document learnings',
+          body: 'Capture patterns, quotes, and the decisions you made.',
+        },
+      ],
+      footer: 'If you share the test goals, I can help prioritize fixes.',
+    },
+  ],
+}
 
 const formatSelectionLabel = (text) => {
   const trimmed = text.replace(/\s+/g, ' ').trim()
@@ -288,6 +410,19 @@ const Icon = ({ name, className }) => {
           <path d="M15 18l-6-6 6-6" />
         </svg>
       )
+    case 'stop':
+      return (
+        <svg className={base} viewBox="0 0 24 24" fill="currentColor">
+          <rect x="7" y="7" width="10" height="10" rx="2" />
+        </svg>
+      )
+    case 'arrow-up':
+      return (
+        <svg className={base} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M12 5l-5 5M12 5l5 5" />
+          <path d="M12 5v14" />
+        </svg>
+      )
     case 'copy':
       return (
         <svg className={base} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -445,51 +580,192 @@ const TopBar = ({
   )
 }
 
-const ChatInput = ({ placeholder, quote, onClearQuote }) => (
-  <div className="mx-auto w-full max-w-3xl px-6 pb-8">
-    <div
-      className={`border border-[#2a2a2a] bg-[#2b2b2b] shadow-gpt-soft ${
-        quote ? 'rounded-2xl px-3 py-3' : 'rounded-full px-4 py-3'
-      }`}
-    >
-      {quote ? (
-        <div className="mb-2 flex items-center justify-between rounded-xl bg-[#3a3a3a] px-3 py-2 text-sm text-[#d6d6d6]">
-          <span className="flex min-w-0 items-center gap-2 text-[#e0e0e0]">
-            <Icon name="reply" className="text-[#b5b5b5]" />
-            <span className="truncate">{formatSelectionLabel(quote)}</span>
-          </span>
-          <button
-            type="button"
-            onClick={onClearQuote}
-            className="ml-3 rounded-full p-1 text-[#9c9c9c] hover:text-white"
-            aria-label="Clear selection"
-          >
-            <Icon name="x" />
-          </button>
+const ChatInput = ({
+  placeholder,
+  quote,
+  onClearQuote,
+  value,
+  onChange,
+  onSend,
+  isThinking,
+  onStop,
+  inputRef,
+  queue,
+  queueingEnabled,
+  queueMenuId,
+  onToggleQueueMenu,
+  onSendNow,
+  onDeleteQueueItem,
+  onEditQueueItem,
+  onToggleQueueing,
+}) => {
+  const [internalValue, setInternalValue] = useState('')
+  const inputValue = value ?? internalValue
+
+  const handleChange = (nextValue) => {
+    if (onChange) {
+      onChange(nextValue)
+    } else {
+      setInternalValue(nextValue)
+    }
+  }
+
+  const handleSubmit = (event) => {
+    event.preventDefault()
+    const trimmed = inputValue.trim()
+    if (!trimmed) return
+    if (onSend) {
+      onSend(trimmed)
+    }
+    if (!onChange) {
+      setInternalValue('')
+    }
+  }
+
+  const canSend = inputValue.trim().length > 0
+
+  const hasQueue = queue && queue.length > 0
+  const showQueueSection = hasQueue || queueingEnabled === false
+
+  return (
+    <div className="mx-auto w-full max-w-3xl px-6 pb-8">
+      {showQueueSection ? (
+        <div className="relative z-10 -mb-4 overflow-hidden rounded-[28px] border border-[#2a2a2a] bg-[#2b2b2b]/70 shadow-gpt-soft backdrop-blur-md">
+          {!hasQueue && queueingEnabled === false ? (
+            <div className="flex items-center justify-between px-4 py-3 text-xs text-[#cfcfcf]">
+              <span>Queueing is off</span>
+              <button
+                type="button"
+                onClick={onToggleQueueing}
+                className="rounded-full bg-[#2a2a2a] px-3 py-1 text-[11px] text-white hover:bg-[#333333]"
+              >
+                Turn on
+              </button>
+            </div>
+          ) : null}
+          {hasQueue ? (
+            <div className="flex flex-col">
+              {queue.map((item) => (
+                <div key={item.id} className="relative px-5 py-2">
+                  <div className="flex items-center gap-2.5 text-[13px] font-medium text-white/75">
+                    <Icon name="reply" className="h-3.5 w-3.5 text-white/35" />
+                    <span className="min-w-0 flex-1 truncate">{item.content}</span>
+                    <div className="flex items-center gap-2 text-white/40">
+                      <button
+                        type="button"
+                        onClick={() => onSendNow(item.id)}
+                        className="rounded-lg p-1 hover:bg-white/5 hover:text-white"
+                      >
+                        <Icon name="arrow-up" className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onDeleteQueueItem(item.id)}
+                        className="rounded-lg p-1 hover:bg-white/5 hover:text-white"
+                      >
+                        <Icon name="trash" className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onToggleQueueMenu(item.id)}
+                        className="rounded-lg p-1 hover:bg-white/5 hover:text-white"
+                      >
+                        <Icon name="dots" className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                  {queueMenuId === item.id ? (
+                    <div className="absolute right-2 top-[calc(100%+6px)] z-20 w-48 rounded-xl border border-[#2a2a2a] bg-[#1f1f1f] p-2 text-xs text-[#e0e0e0] shadow-gpt-soft">
+                      <button
+                        type="button"
+                        onClick={() => onEditQueueItem(item.id)}
+                        className="flex w-full items-center rounded-lg px-3 py-2 text-left hover:bg-[#2a2a2a]"
+                      >
+                        Edit message
+                      </button>
+                      <button
+                        type="button"
+                        onClick={onToggleQueueing}
+                        className="flex w-full items-center rounded-lg px-3 py-2 text-left hover:bg-[#2a2a2a]"
+                      >
+                        {queueingEnabled ? 'Turn off queueing' : 'Turn on queueing'}
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          ) : null}
         </div>
       ) : null}
-      <div className={`flex items-center gap-3 ${quote ? 'px-1' : ''}`}>
-        <button
-          type="button"
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#3a3a3a] text-white/90"
-        >
-          <Icon name="plus" />
-        </button>
-        <input
-          type="text"
-          placeholder={placeholder}
-          className="flex-1 bg-transparent text-sm text-[#e8e8e8] placeholder:text-[#9b9b9b] focus:outline-none"
-        />
-        <button type="button" className="rounded-full p-2 text-[#9b9b9b] hover:text-white">
-          <Icon name="mic" />
-        </button>
-        <button type="button" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1d4ed8] text-white">
-          <Icon name="voice" />
-        </button>
-      </div>
+      <form
+        onSubmit={handleSubmit}
+        className={`relative z-0 border border-[#2a2a2a] bg-[#2b2b2b] shadow-gpt-soft ${
+          quote ? 'rounded-2xl px-3 py-3' : 'rounded-full px-4 py-3'
+        }`}
+      >
+        {quote ? (
+          <div className="mb-2 flex items-center justify-between rounded-xl bg-[#3a3a3a] px-3 py-2 text-sm text-[#d6d6d6]">
+            <span className="flex min-w-0 items-center gap-2 text-[#e0e0e0]">
+              <Icon name="reply" className="text-[#b5b5b5]" />
+              <span className="truncate">{formatSelectionLabel(quote)}</span>
+            </span>
+            <button
+              type="button"
+              onClick={onClearQuote}
+              className="ml-3 rounded-full p-1 text-[#9c9c9c] hover:text-white"
+              aria-label="Clear selection"
+            >
+              <Icon name="x" />
+            </button>
+          </div>
+        ) : null}
+        <div className={`flex items-center gap-3 ${quote ? 'px-1' : ''}`}>
+          <button
+            type="button"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#3a3a3a] text-white/90"
+          >
+            <Icon name="plus" />
+          </button>
+          <input
+            ref={inputRef}
+            type="text"
+            placeholder={placeholder}
+            value={inputValue}
+            onChange={(event) => handleChange(event.target.value)}
+            className="min-w-0 flex-1 bg-transparent text-sm text-[#e8e8e8] placeholder:text-[#9b9b9b] focus:outline-none"
+          />
+          <button type="button" className="rounded-full p-2 text-[#9b9b9b] hover:text-white">
+            <Icon name="mic" />
+          </button>
+          {isThinking && !canSend ? (
+            <button
+              type="button"
+              onClick={onStop}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1d4ed8] text-white"
+            >
+              <Icon name="stop" />
+            </button>
+          ) : canSend ? (
+            <button
+              type="submit"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1d4ed8] text-white"
+            >
+              <Icon name="arrow-up" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1d4ed8] text-white"
+            >
+              <Icon name="voice" />
+            </button>
+          )}
+        </div>
+      </form>
     </div>
-  </div>
-)
+  )
+}
 
 const BranchInput = ({ placeholder, value, onChange, onSend, disabled }) => (
   <form
@@ -672,9 +948,14 @@ export default function App() {
   const [branchInput, setBranchInput] = useState('')
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [hoveredAction, setHoveredAction] = useState(null)
+  const [chatStates, setChatStates] = useState({})
+  const [chatInput, setChatInput] = useState('')
+  const [queueMenuId, setQueueMenuId] = useState(null)
   const [isBranchPanelOpen, setIsBranchPanelOpen] = useState(false)
   const [branchView, setBranchView] = useState('history')
   const chatContainerRef = useRef(null)
+  const mainInputRef = useRef(null)
+  const mainTimersRef = useRef({})
   const getSelectableAncestor = (node) => {
     if (!node) return null
     const element = node.nodeType === 1 ? node : node.parentElement
@@ -687,10 +968,72 @@ export default function App() {
     return match?.label || 'ChatGPT 5.2'
   }, [activeChatId])
 
+  const currentMessages = useMemo(() => {
+    if (!activeChatId) return []
+    return chatThreads[activeChatId] || []
+  }, [activeChatId])
+
+  const activeChatState = useMemo(() => {
+    if (!activeChatId) return defaultChatState
+    return chatStates[activeChatId] || defaultChatState
+  }, [chatStates, activeChatId])
+
+  const combinedMessages = useMemo(() => {
+    if (!activeChatId) return []
+    return [...currentMessages, ...activeChatState.messages]
+  }, [currentMessages, activeChatState, activeChatId])
+
+  const turns = useMemo(() => {
+    const result = []
+    let current = null
+
+    combinedMessages.forEach((message) => {
+      if (message.role === 'user') {
+        if (current) result.push(current)
+        current = { id: message.id, user: message, assistant: null }
+        return
+      }
+
+      if (!current) {
+        result.push({ id: message.id, user: null, assistant: message })
+        return
+      }
+
+      if (!current.assistant) {
+        current.assistant = message
+        result.push(current)
+        current = null
+        return
+      }
+
+      result.push(current)
+      current = { id: message.id, user: null, assistant: message }
+    })
+
+    if (current) result.push(current)
+    return result
+  }, [combinedMessages])
+
   const activeBranch = useMemo(
     () => branches.find((branch) => branch.id === activeBranchId) || null,
     [branches, activeBranchId]
   )
+
+  const updateChatState = (chatId, updater) => {
+    setChatStates((prev) => {
+      const current = prev[chatId] || defaultChatState
+      const updated = updater(current)
+      return { ...prev, [chatId]: updated }
+    })
+  }
+
+  const clearChatTimer = (chatId) => {
+    const timer = mainTimersRef.current[chatId]
+    if (timer) {
+      window.clearTimeout(timer)
+      delete mainTimersRef.current[chatId]
+    }
+  }
 
   const handleSelection = () => {
     const selectionObj = window.getSelection()
@@ -791,6 +1134,133 @@ export default function App() {
     }, 700)
   }
 
+  const sendMainMessage = (content) => {
+    if (!activeChatId) return
+    const trimmed = content.trim()
+    if (!trimmed) return
+    let queued = false
+
+    updateChatState(activeChatId, (state) => {
+      if (state.isThinking) {
+        if (state.queueingEnabled) {
+          queued = true
+          return {
+            ...state,
+            queue: [...state.queue, { id: `queue-${Date.now()}`, content: trimmed }],
+          }
+        }
+        clearChatTimer(activeChatId)
+        return {
+          ...state,
+          isThinking: true,
+          messages: [...state.messages, { id: `msg-${Date.now()}`, role: 'user', content: trimmed }],
+          queue: state.queue,
+        }
+      }
+
+      return {
+        ...state,
+        messages: [...state.messages, { id: `msg-${Date.now()}`, role: 'user', content: trimmed }],
+        isThinking: true,
+      }
+    })
+
+    setChatInput('')
+
+    if (queued) return
+
+    const scheduleResponse = (message) => {
+      clearChatTimer(activeChatId)
+      mainTimersRef.current[activeChatId] = window.setTimeout(() => {
+        let nextContent = null
+        updateChatState(activeChatId, (state) => {
+          const reply = {
+            id: `msg-${Date.now()}-a`,
+            role: 'assistant',
+            content: `Got it. Here’s a quick response to: ${message}`,
+          }
+
+          if (state.queueingEnabled && state.queue.length > 0) {
+            const [nextItem, ...rest] = state.queue
+            nextContent = nextItem.content
+            return {
+              ...state,
+              messages: [
+                ...state.messages,
+                reply,
+                { id: `msg-${Date.now()}-q`, role: 'user', content: nextItem.content },
+              ],
+              isThinking: true,
+              queue: rest,
+            }
+          }
+
+          return {
+            ...state,
+            messages: [...state.messages, reply],
+            isThinking: false,
+          }
+        })
+
+        if (nextContent) {
+          scheduleResponse(nextContent)
+        }
+      }, 3000)
+    }
+
+    scheduleResponse(trimmed)
+  }
+
+  const stopMainThinking = () => {
+    if (!activeChatId) return
+    clearChatTimer(activeChatId)
+    updateChatState(activeChatId, (state) => ({ ...state, isThinking: false }))
+  }
+
+  const sendQueuedNow = (id) => {
+    if (!activeChatId) return
+    const item = activeChatState.queue.find((q) => q.id === id)
+    if (!item) return
+    updateChatState(activeChatId, (state) => ({
+      ...state,
+      queue: state.queue.filter((q) => q.id !== id),
+    }))
+    sendMainMessage(item.content)
+  }
+
+  const deleteQueued = (id) => {
+    if (!activeChatId) return
+    updateChatState(activeChatId, (state) => ({
+      ...state,
+      queue: state.queue.filter((q) => q.id !== id),
+    }))
+    setQueueMenuId(null)
+  }
+
+  const editQueued = (id) => {
+    if (!activeChatId) return
+    const item = activeChatState.queue.find((q) => q.id === id)
+    if (!item) return
+    updateChatState(activeChatId, (state) => ({
+      ...state,
+      queue: state.queue.filter((q) => q.id !== id),
+    }))
+    setChatInput(item.content)
+    setQueueMenuId(null)
+    window.setTimeout(() => {
+      mainInputRef.current?.focus()
+    }, 0)
+  }
+
+  const toggleQueueing = () => {
+    if (!activeChatId) return
+    updateChatState(activeChatId, (state) => ({
+      ...state,
+      queueingEnabled: !state.queueingEnabled,
+    }))
+    setQueueMenuId(null)
+  }
+
   useEffect(() => {
     if (!activeBranchId) return
     setBranchInput('')
@@ -802,9 +1272,25 @@ export default function App() {
     }
   }, [activeChatId])
 
+  useEffect(() => {
+    if (!activeChatId) return
+    setChatInput('')
+    setQueueMenuId(null)
+  }, [activeChatId])
+
+  useEffect(() => {
+    if (!chatContainerRef.current) return
+    const el = chatContainerRef.current
+    const scrollToBottom = () => {
+      el.scrollTop = el.scrollHeight
+    }
+    scrollToBottom()
+    window.requestAnimationFrame(scrollToBottom)
+  }, [turns, activeChatId])
+
   return (
-    <div className="min-h-screen bg-gpt-bg text-gpt-text">
-      <div className="flex min-h-screen">
+    <div className="h-screen bg-gpt-bg text-gpt-text">
+      <div className="flex h-full">
         <aside className="flex h-screen w-72 flex-col bg-gpt-panel">
           <div className="px-3 pt-5">
             <div className="flex items-center gap-2 px-2 pb-4 text-white">
@@ -885,7 +1371,7 @@ export default function App() {
           </div>
         </aside>
 
-        <main className="relative flex flex-1 flex-col overflow-hidden">
+        <main className="relative flex flex-1 min-h-0 flex-col overflow-hidden">
           <TopBar
             title="ChatGPT 5.2"
             onOpenBranches={() => {
@@ -912,7 +1398,7 @@ export default function App() {
               </div>
             </div>
           ) : (
-            <div className="relative flex flex-1 flex-col">
+            <div className="relative flex flex-1 min-h-0 flex-col">
               <BranchPanel
                 open={isBranchPanelOpen}
                 view={branchView}
@@ -932,74 +1418,82 @@ export default function App() {
               <div
                 ref={chatContainerRef}
                 onMouseUp={handleSelection}
-                className={`selection-highlight flex-1 overflow-y-auto px-8 pb-32 pt-6 scrollbar-thin ${
+                className={`selection-highlight flex-1 min-h-0 overflow-y-auto px-8 pb-32 pt-6 scrollbar-thin ${
                   isBranchPanelOpen ? 'pr-[22rem]' : ''
                 }`}
               >
-                <div className="mx-auto flex max-w-3xl flex-col gap-6">
-                  {chatMessages.map((message) => {
-                    if (message.role === 'user') {
-                      return (
-                        <div key={message.id} className="flex justify-end">
-                          <div className="max-w-xl rounded-2xl bg-[#0b3f8f] px-4 py-3 text-sm text-white shadow-gpt-soft">
-                            <p className="leading-relaxed">{message.content}</p>
-                          </div>
-                        </div>
-                      )
-                    }
-
-                    return (
-                      <div
-                        key={message.id}
-                        className="text-sm leading-relaxed text-[#e5e5e5]"
-                        data-selectable="assistant"
-                      >
-                        <p className="text-base font-semibold text-white">{message.title}</p>
-                        <div className="mt-4 space-y-4 text-[#d6d6d6]">
-                          {message.items.map((item, index) => (
-                            <div key={item.title} className="space-y-1">
-                              <p className="font-semibold text-white">
-                                {index + 1}. {item.title}
-                              </p>
-                              <p className="text-[#b5b5b5]">{item.body}</p>
+                <div className="mx-auto flex max-w-3xl flex-col gap-10">
+                  {turns.map((turn) => (
+                      <div key={turn.id} className="space-y-6">
+                        {turn.user ? (
+                          <div className="flex justify-end">
+                            <div className="max-w-xl rounded-2xl bg-[#0b3f8f] px-4 py-3 text-sm text-white shadow-gpt-soft">
+                              <p className="leading-relaxed">{turn.user.content}</p>
                             </div>
-                          ))}
-                        </div>
-                        <p className="mt-5 text-[#b5b5b5]">{message.footer}</p>
+                          </div>
+                        ) : null}
 
-                        <div className="mt-6 flex items-center gap-2 text-[#8f8f8f]">
-                          {actionButtons.map((action) => (
-                            <div key={action.id} className="relative">
-                              <button
-                                type="button"
-                                onMouseEnter={() => setHoveredAction(action.id)}
-                                onMouseLeave={() => setHoveredAction(null)}
-                                className="flex h-9 w-9 items-center justify-center rounded-xl text-[#c8c8c8] transition hover:bg-[#2a2a2a] hover:text-white"
-                              >
-                                <Icon name={action.id} className="h-5 w-5" />
-                              </button>
-                              {hoveredAction === action.id ? (
-                                <div
-                                  className={`pointer-events-none absolute left-1/2 top-[calc(100%+8px)] -translate-x-1/2 bg-black/90 px-4 py-2 text-xs font-semibold text-white shadow-gpt-soft ${
-                                    action.sublabel ? 'rounded-2xl' : 'rounded-full'
-                                  }`}
-                                >
-                                  <div className={action.sublabel ? 'text-left' : 'text-center'}>
-                                    {action.label}
-                                    {action.sublabel ? (
-                                      <div className="mt-1 text-[11px] font-medium text-white/70">
-                                        {action.sublabel}
+                        {turn.assistant ? (
+                          <div
+                            className="text-sm leading-relaxed text-[#e5e5e5]"
+                            data-selectable="assistant"
+                          >
+                            {turn.assistant.items ? (
+                              <>
+                                <p className="text-base font-semibold text-white">{turn.assistant.title}</p>
+                                <div className="mt-4 space-y-4 text-[#d6d6d6]">
+                                  {turn.assistant.items.map((item, index) => (
+                                    <div key={item.title} className="space-y-1">
+                                      <p className="font-semibold text-white">
+                                        {index + 1}. {item.title}
+                                      </p>
+                                      <p className="text-[#b5b5b5]">{item.body}</p>
+                                    </div>
+                                  ))}
+                                </div>
+                                <p className="mt-5 text-[#b5b5b5]">{turn.assistant.footer}</p>
+                              </>
+                            ) : (
+                              <p className="text-[#d6d6d6]">{turn.assistant.content}</p>
+                            )}
+
+                            <div className="mt-6 flex items-center gap-2 text-[#8f8f8f]">
+                              {actionButtons.map((action) => {
+                                const hoverKey = `${turn.id}-${action.id}`
+                                return (
+                                  <div key={action.id} className="relative">
+                                    <button
+                                      type="button"
+                                      onMouseEnter={() => setHoveredAction(hoverKey)}
+                                      onMouseLeave={() => setHoveredAction(null)}
+                                      className="flex h-9 w-9 items-center justify-center rounded-xl text-[#c8c8c8] transition hover:bg-[#2a2a2a] hover:text-white"
+                                    >
+                                      <Icon name={action.id} className="h-5 w-5" />
+                                    </button>
+                                    {hoveredAction === hoverKey ? (
+                                      <div
+                                        className={`pointer-events-none absolute left-1/2 top-[calc(100%+8px)] -translate-x-1/2 bg-black/90 px-4 py-2 text-xs font-semibold text-white shadow-gpt-soft ${
+                                          action.sublabel ? 'rounded-2xl' : 'rounded-full'
+                                        }`}
+                                      >
+                                        <div className={action.sublabel ? 'text-left' : 'text-center'}>
+                                          {action.label}
+                                          {action.sublabel ? (
+                                            <div className="mt-1 text-[11px] font-medium text-white/70">
+                                              {action.sublabel}
+                                            </div>
+                                          ) : null}
+                                        </div>
                                       </div>
                                     ) : null}
                                   </div>
-                                </div>
-                              ) : null}
+                                )
+                              })}
                             </div>
-                          ))}
-                        </div>
+                          </div>
+                        ) : null}
                       </div>
-                    )
-                  })}
+                    ))}
                 </div>
               </div>
               <div
@@ -1010,7 +1504,25 @@ export default function App() {
                 }}
               >
                 <div className="pointer-events-auto w-full max-w-3xl">
-                  <ChatInput placeholder="Ask anything" quote={quote} onClearQuote={() => setQuote('')} />
+                  <ChatInput
+                    placeholder="Ask anything"
+                    quote={quote}
+                    onClearQuote={() => setQuote('')}
+                    value={chatInput}
+                    onChange={setChatInput}
+                    onSend={sendMainMessage}
+                    isThinking={activeChatState.isThinking}
+                    onStop={stopMainThinking}
+                    inputRef={mainInputRef}
+                    queue={activeChatState.queue}
+                    queueingEnabled={activeChatState.queueingEnabled}
+                    queueMenuId={queueMenuId}
+                    onToggleQueueMenu={(id) => setQueueMenuId((prev) => (prev === id ? null : id))}
+                    onSendNow={sendQueuedNow}
+                    onDeleteQueueItem={deleteQueued}
+                    onEditQueueItem={editQueued}
+                    onToggleQueueing={toggleQueueing}
+                  />
                 </div>
               </div>
             </div>
