@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Sohne", "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: #1f1f1f;
+  color: #e5e5e5;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #3a3a3a transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #3a3a3a;
+  border-radius: 999px;
+}
+
+.selection-highlight::selection {
+  background: rgba(59, 130, 246, 0.35);
+}
