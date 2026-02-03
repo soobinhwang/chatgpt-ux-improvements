@@ -37,7 +37,14 @@ const chats = [
   { id: 'chat-5', label: 'Next steps' },
 ]
 
-const actionIcons = ['copy', 'thumb-up', 'thumb-down', 'share', 'repeat']
+const actionButtons = [
+  { id: 'copy', label: 'Copy' },
+  { id: 'thumb-up', label: 'Good response' },
+  { id: 'thumb-down', label: 'Bad response' },
+  { id: 'share', label: 'Share' },
+  { id: 'repeat', label: 'Try again...', sublabel: 'Used GPT-5.2' },
+  { id: 'dots', label: 'More' },
+]
 
 const chatMessages = [
   {
@@ -283,9 +290,9 @@ const Icon = ({ name, className }) => {
       )
     case 'copy':
       return (
-        <svg className={base} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-          <rect x="9" y="9" width="10" height="10" rx="2" />
-          <rect x="5" y="5" width="10" height="10" rx="2" />
+        <svg className={base} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <rect x="8.5" y="4" width="11" height="11" rx="3.8" />
+          <rect x="4" y="8.5" width="11" height="11" rx="3.8" />
         </svg>
       )
     case 'thumb-up':
@@ -381,9 +388,6 @@ const TopBar = ({
             >
               <Icon name="branch" className="text-white/80" />
               <span>Branches</span>
-              {branchCount > 0 ? (
-                <span className="rounded-full bg-[#2a2a2a] px-2 text-xs text-[#d0d0d0]">{branchCount}</span>
-              ) : null}
             </button>
           ) : null}
           <button
@@ -467,7 +471,7 @@ const ChatInput = ({ placeholder, quote, onClearQuote }) => (
       <div className={`flex items-center gap-3 ${quote ? 'px-1' : ''}`}>
         <button
           type="button"
-          className="flex h-8 w-8 items-center justify-center rounded-full border border-[#3a3a3a] text-white/90"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#3a3a3a] text-white/90"
         >
           <Icon name="plus" />
         </button>
@@ -479,7 +483,7 @@ const ChatInput = ({ placeholder, quote, onClearQuote }) => (
         <button type="button" className="rounded-full p-2 text-[#9b9b9b] hover:text-white">
           <Icon name="mic" />
         </button>
-        <button type="button" className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1d4ed8] text-white">
+        <button type="button" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1d4ed8] text-white">
           <Icon name="voice" />
         </button>
       </div>
@@ -493,12 +497,12 @@ const BranchInput = ({ placeholder, value, onChange, onSend, disabled }) => (
       event.preventDefault()
       onSend()
     }}
-    className="rounded-full border border-[#2a2a2a] bg-[#2b2b2b] px-3 py-2 shadow-gpt-soft"
+    className="w-full rounded-full border border-[#2a2a2a] bg-[#2b2b2b] px-4 py-3 shadow-gpt-soft"
   >
     <div className="flex items-center gap-3">
       <button
         type="button"
-        className="flex h-8 w-8 items-center justify-center rounded-full border border-[#3a3a3a] text-white/90"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#3a3a3a] text-white/90"
       >
         <Icon name="plus" />
       </button>
@@ -508,7 +512,7 @@ const BranchInput = ({ placeholder, value, onChange, onSend, disabled }) => (
         value={value}
         onChange={(event) => onChange(event.target.value)}
         disabled={disabled}
-        className="flex-1 bg-transparent text-sm text-[#e8e8e8] placeholder:text-[#9b9b9b] focus:outline-none disabled:opacity-50"
+        className="min-w-0 flex-1 bg-transparent text-sm text-[#e8e8e8] placeholder:text-[#9b9b9b] focus:outline-none disabled:opacity-50"
       />
       <button type="button" className="rounded-full p-2 text-[#9b9b9b] hover:text-white">
         <Icon name="mic" />
@@ -516,7 +520,7 @@ const BranchInput = ({ placeholder, value, onChange, onSend, disabled }) => (
       <button
         type="submit"
         disabled={disabled || !value.trim()}
-        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1d4ed8] text-white disabled:opacity-50"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1d4ed8] text-white disabled:opacity-50"
       >
         <Icon name="voice" />
       </button>
@@ -570,8 +574,13 @@ const BranchPanel = ({
       <div className="flex-1 overflow-y-auto px-4 py-3 text-sm text-[#cfcfcf] scrollbar-thin">
         {view === 'history' ? (
           branches.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-[#2a2a2a] px-3 py-4 text-center text-[#9c9c9c]">
-              No branches yet. Create one from a selection.
+            <div className="flex h-full items-center justify-center px-4 text-center">
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-[#d6d6d6]">No branches yet.</p>
+                <p className="text-xs text-[#8f8f8f]">
+                  Create one from a selection. Branch history is saved per chat.
+                </p>
+              </div>
             </div>
           ) : (
             <div className="space-y-3">
@@ -648,9 +657,7 @@ const BranchPanel = ({
           />
         </div>
       ) : (
-        <div className="border-t border-[#2a2a2a] px-4 py-3 text-xs text-[#9c9c9c]">
-          Branch history is saved per chat.
-        </div>
+        <div className="border-t border-[#2a2a2a] px-4 py-3 text-xs text-[#9c9c9c]"> </div>
       )}
     </aside>
   )
@@ -664,6 +671,7 @@ export default function App() {
   const [activeBranchId, setActiveBranchId] = useState(null)
   const [branchInput, setBranchInput] = useState('')
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [hoveredAction, setHoveredAction] = useState(null)
   const [isBranchPanelOpen, setIsBranchPanelOpen] = useState(false)
   const [branchView, setBranchView] = useState('history')
   const chatContainerRef = useRef(null)
@@ -959,11 +967,34 @@ export default function App() {
                         </div>
                         <p className="mt-5 text-[#b5b5b5]">{message.footer}</p>
 
-                        <div className="mt-6 flex items-center gap-3 text-[#8f8f8f]">
-                          {actionIcons.map((icon) => (
-                            <button key={icon} type="button" className="rounded-full p-2 hover:bg-[#2a2a2a]">
-                              <Icon name={icon} />
-                            </button>
+                        <div className="mt-6 flex items-center gap-2 text-[#8f8f8f]">
+                          {actionButtons.map((action) => (
+                            <div key={action.id} className="relative">
+                              <button
+                                type="button"
+                                onMouseEnter={() => setHoveredAction(action.id)}
+                                onMouseLeave={() => setHoveredAction(null)}
+                                className="flex h-9 w-9 items-center justify-center rounded-xl text-[#c8c8c8] transition hover:bg-[#2a2a2a] hover:text-white"
+                              >
+                                <Icon name={action.id} className="h-5 w-5" />
+                              </button>
+                              {hoveredAction === action.id ? (
+                                <div
+                                  className={`pointer-events-none absolute left-1/2 top-[calc(100%+8px)] -translate-x-1/2 bg-black/90 px-4 py-2 text-xs font-semibold text-white shadow-gpt-soft ${
+                                    action.sublabel ? 'rounded-2xl' : 'rounded-full'
+                                  }`}
+                                >
+                                  <div className={action.sublabel ? 'text-left' : 'text-center'}>
+                                    {action.label}
+                                    {action.sublabel ? (
+                                      <div className="mt-1 text-[11px] font-medium text-white/70">
+                                        {action.sublabel}
+                                      </div>
+                                    ) : null}
+                                  </div>
+                                </div>
+                              ) : null}
+                            </div>
                           ))}
                         </div>
                       </div>
