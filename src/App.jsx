@@ -29,12 +29,12 @@ const projects = [
   { id: 'proj-5', label: '[Job] Presentation', icon: 'folder' },
 ]
 
-const chats = [
-  { id: 'chat-1', label: 'Design feedback' },
-  { id: 'chat-2', label: 'Project ideas' },
-  { id: 'chat-3', label: 'Writing help' },
-  { id: 'chat-4', label: 'Research notes' },
-  { id: 'chat-5', label: 'Next steps' },
+const initialChats = [
+  { id: 'chat-1', label: 'Design feedback', createdAt: Date.now() - 1 * 3600000, archived: false, projectId: null },
+  { id: 'chat-2', label: 'Project ideas', createdAt: Date.now() - 5 * 3600000, archived: false, projectId: null },
+  { id: 'chat-3', label: 'Writing help', createdAt: Date.now() - 24 * 3600000, archived: false, projectId: null },
+  { id: 'chat-4', label: 'Research notes', createdAt: Date.now() - 72 * 3600000, archived: false, projectId: null },
+  { id: 'chat-5', label: 'Next steps', createdAt: Date.now() - 168 * 3600000, archived: false, projectId: null },
 ]
 
 const actionButtons = [
@@ -213,8 +213,35 @@ const chatThreads = {
 
 const formatSelectionLabel = (text) => {
   const trimmed = text.replace(/\s+/g, ' ').trim()
-  if (trimmed.length <= 80) return `“${trimmed}”`
-  return `“${trimmed.slice(0, 80)}...”`
+  if (trimmed.length <= 80) return `"${trimmed}"`
+  return `"${trimmed.slice(0, 80)}..."`
+}
+
+const getPreview = (chatId, chatStatesMap) => {
+  const thread = chatThreads[chatId]
+  if (thread) {
+    const firstUser = thread.find((m) => m.role === 'user')
+    if (firstUser) return firstUser.content
+  }
+  const state = chatStatesMap[chatId]
+  if (state?.messages?.length > 0) {
+    const firstUser = state.messages.find((m) => m.role === 'user')
+    if (firstUser) return firstUser.content
+  }
+  return 'No messages yet'
+}
+
+const formatRelativeDate = (timestamp) => {
+  const diff = Date.now() - timestamp
+  const minutes = Math.floor(diff / 60000)
+  const hours = Math.floor(diff / 3600000)
+  const days = Math.floor(diff / 86400000)
+  if (minutes < 1) return 'Just now'
+  if (minutes < 60) return `${minutes}m ago`
+  if (hours < 24) return `${hours}h ago`
+  if (days < 7) return `${days}d ago`
+  if (days < 30) return `${Math.floor(days / 7)}w ago`
+  return new Date(timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
 const Icon = ({ name, className }) => {
@@ -410,6 +437,12 @@ const Icon = ({ name, className }) => {
           <path d="M15 18l-6-6 6-6" />
         </svg>
       )
+    case 'expand':
+      return (
+        <svg className={base} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+          <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+        </svg>
+      )
     case 'stop':
       return (
         <svg className={base} viewBox="0 0 24 24" fill="currentColor">
@@ -471,11 +504,14 @@ const SidebarItem = ({ icon, label, active, onClick, muted }) => (
   </button>
 )
 
-const SidebarSection = ({ title, children }) => (
+const SidebarSection = ({ title, children, action }) => (
   <div className="mt-4">
-    <p className="px-3 pb-2 text-xs uppercase tracking-wide text-[#7b7b7b]">
-      {title}
-    </p>
+    <div className="flex items-center justify-between px-3 pb-2">
+      <p className="text-xs uppercase tracking-wide text-[#7b7b7b]">
+        {title}
+      </p>
+      {action || null}
+    </div>
     <div className="space-y-1">{children}</div>
   </div>
 )
@@ -945,6 +981,220 @@ const BranchPanel = ({
   )
 }
 
+const ChatHistoryRow = ({ chat, preview, isSelected, onToggle, onOpen, onDelete, onArchive }) => (
+  <div className="group flex items-center gap-4 px-6 py-3 transition hover:bg-[#2b2b2b] border-b border-[#2a2a2a]/50">
+    <input
+      type="checkbox"
+      checked={isSelected}
+      onChange={onToggle}
+      className="h-4 w-4 shrink-0 cursor-pointer rounded border-[#3a3a3a] bg-transparent accent-[#1d4ed8]"
+    />
+    <button type="button" onClick={onOpen} className="flex min-w-0 flex-1 flex-col text-left">
+      <div className="flex items-center gap-2">
+        <span className="truncate text-sm font-medium text-[#e5e5e5]">{chat.label}</span>
+        {chat.archived ? (
+          <span className="rounded bg-[#2a2a2a] px-1.5 py-0.5 text-[10px] text-[#8d8d8d]">Archived</span>
+        ) : null}
+      </div>
+      <p className="mt-0.5 truncate text-xs text-[#8d8d8d]">{preview}</p>
+    </button>
+    <span className="shrink-0 w-20 text-right text-xs text-[#7b7b7b]">{formatRelativeDate(chat.createdAt)}</span>
+    <div className="flex items-center gap-2">
+      <button
+        type="button"
+        onClick={onArchive}
+        className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs text-[#9b9b9b] transition hover:bg-[#3a3a3a] hover:text-white"
+      >
+        <Icon name="archive" className="h-3.5 w-3.5" />
+        <span>{chat.archived ? 'Unarchive' : 'Archive'}</span>
+      </button>
+      <button
+        type="button"
+        onClick={onDelete}
+        className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs text-red-400 transition hover:bg-[#3a3a3a] hover:text-red-300"
+      >
+        <Icon name="trash" className="h-3.5 w-3.5" />
+        <span>Delete</span>
+      </button>
+    </div>
+  </div>
+)
+
+const ChatHistoryToolbar = ({ count, onDelete, onArchive, onMoveToProject, onClear, projects }) => {
+  const [showProjects, setShowProjects] = useState(false)
+  return (
+    <div className="sticky bottom-6 z-30 mx-auto flex items-center gap-3 rounded-2xl border border-[#2a2a2a] bg-[#1f1f1f] px-5 py-3 shadow-gpt-soft">
+      <span className="text-sm text-[#cfcfcf]">{count} selected</span>
+      <div className="h-4 w-px bg-[#2a2a2a]" />
+      <button
+        type="button"
+        onClick={onArchive}
+        className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-[#cfcfcf] hover:bg-[#2a2a2a]"
+      >
+        <Icon name="archive" className="h-4 w-4" />
+        <span>Archive</span>
+      </button>
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setShowProjects((p) => !p)}
+          className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-[#cfcfcf] hover:bg-[#2a2a2a]"
+        >
+          <Icon name="folder" className="h-4 w-4" />
+          <span>Move to project</span>
+        </button>
+        {showProjects ? (
+          <div className="absolute bottom-full left-0 mb-2 w-52 rounded-xl border border-[#2a2a2a] bg-[#1f1f1f] p-2 text-sm text-[#e0e0e0] shadow-gpt-soft">
+            {projects
+              .filter((p) => p.id !== 'proj-new')
+              .map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => {
+                    onMoveToProject(p.id)
+                    setShowProjects(false)
+                  }}
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left hover:bg-[#2a2a2a]"
+                >
+                  <Icon name="folder" className="h-4 w-4 text-[#9b9b9b]" />
+                  <span>{p.label}</span>
+                </button>
+              ))}
+          </div>
+        ) : null}
+      </div>
+      <button
+        type="button"
+        onClick={onDelete}
+        className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-red-400 hover:bg-[#2a2a2a]"
+      >
+        <Icon name="trash" className="h-4 w-4 text-red-400" />
+        <span>Delete</span>
+      </button>
+      <div className="h-4 w-px bg-[#2a2a2a]" />
+      <button type="button" onClick={onClear} className="text-sm text-[#8d8d8d] hover:text-white">
+        Cancel
+      </button>
+    </div>
+  )
+}
+
+const ChatHistoryView = ({
+  chats,
+  chatStatesMap,
+  search,
+  onSearchChange,
+  sortBy,
+  selectedIds,
+  onToggleSelect,
+  onSelectAll,
+  onOpenChat,
+  onDeleteChats,
+  onArchiveChats,
+  onMoveToProject,
+  onClearSelection,
+  projectsList,
+}) => {
+  const selectAllRef = useRef(null)
+
+  const filtered = useMemo(() => {
+    let result = chats
+    if (search.trim()) {
+      const term = search.toLowerCase()
+      result = result.filter((c) => {
+        const titleMatch = c.label.toLowerCase().includes(term)
+        const preview = getPreview(c.id, chatStatesMap)
+        return titleMatch || preview.toLowerCase().includes(term)
+      })
+    }
+    if (sortBy === 'date') {
+      result = [...result].sort((a, b) => b.createdAt - a.createdAt)
+    } else {
+      result = [...result].sort((a, b) => a.label.localeCompare(b.label))
+    }
+    return result
+  }, [chats, chatStatesMap, search, sortBy])
+
+  const visibleSelectedCount = filtered.filter((c) => selectedIds.has(c.id)).length
+  const allSelected = filtered.length > 0 && visibleSelectedCount === filtered.length
+  const someSelected = visibleSelectedCount > 0 && !allSelected
+
+  useEffect(() => {
+    if (selectAllRef.current) {
+      selectAllRef.current.indeterminate = someSelected
+    }
+  }, [someSelected])
+
+  return (
+    <div className="flex flex-1 min-h-0 flex-col">
+      <div className="px-8 pt-2 pb-4">
+        <div className="relative">
+          <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 text-[#7b7b7b]" />
+          <input
+            type="text"
+            placeholder="Search chats..."
+            value={search}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="w-full rounded-xl border border-[#2a2a2a] bg-[#2b2b2b] py-2.5 pl-10 pr-4 text-sm text-[#e8e8e8] placeholder:text-[#7b7b7b] focus:border-[#3a3a3a] focus:outline-none"
+          />
+        </div>
+      </div>
+
+      <div className="flex items-center gap-4 border-b border-[#2a2a2a] px-6 py-2 text-xs text-[#8d8d8d]">
+        <input
+          ref={selectAllRef}
+          type="checkbox"
+          checked={allSelected}
+          onChange={() => onSelectAll(filtered)}
+          className="h-4 w-4 shrink-0 cursor-pointer rounded border-[#3a3a3a] bg-transparent accent-[#1d4ed8]"
+        />
+        <span className="flex-1">Title</span>
+        <span className="w-20 text-right">Date</span>
+        <span className="w-[72px]" />
+      </div>
+
+      <div className="flex-1 overflow-y-auto scrollbar-thin">
+        {filtered.length === 0 ? (
+          <div className="flex flex-1 flex-col items-center justify-center px-6 py-20 text-center">
+            <Icon name={search ? 'search' : 'new-chat'} className="h-10 w-10 text-[#4a4a4a] mb-4" />
+            <h3 className="text-lg font-medium text-[#e5e5e5]">
+              {search ? 'No matching chats' : 'No chats yet'}
+            </h3>
+            <p className="mt-1 text-sm text-[#8d8d8d]">
+              {search ? 'Try a different search term.' : 'Start a new conversation to see it here.'}
+            </p>
+          </div>
+        ) : (
+          filtered.map((chat) => (
+            <ChatHistoryRow
+              key={chat.id}
+              chat={chat}
+              preview={getPreview(chat.id, chatStatesMap)}
+              isSelected={selectedIds.has(chat.id)}
+              onToggle={() => onToggleSelect(chat.id)}
+              onOpen={() => onOpenChat(chat.id)}
+              onDelete={() => onDeleteChats([chat.id])}
+              onArchive={() => onArchiveChats([chat.id])}
+            />
+          ))
+        )}
+      </div>
+
+      {visibleSelectedCount > 0 ? (
+        <ChatHistoryToolbar
+          count={visibleSelectedCount}
+          onDelete={() => onDeleteChats([...selectedIds])}
+          onArchive={() => onArchiveChats([...selectedIds])}
+          onMoveToProject={(projectId) => onMoveToProject([...selectedIds], projectId)}
+          onClear={onClearSelection}
+          projects={projectsList}
+        />
+      ) : null}
+    </div>
+  )
+}
+
 export default function App() {
   const [activeChatId, setActiveChatId] = useState(null)
   const [selection, setSelection] = useState(null)
@@ -959,6 +1209,11 @@ export default function App() {
   const [queueMenuId, setQueueMenuId] = useState(null)
   const [isBranchPanelOpen, setIsBranchPanelOpen] = useState(false)
   const [branchView, setBranchView] = useState('history')
+  const [chatList, setChatList] = useState(initialChats)
+  const [historyView, setHistoryView] = useState(false)
+  const [historySearch, setHistorySearch] = useState('')
+  const [historySortBy, setHistorySortBy] = useState('date')
+  const [historySelectedIds, setHistorySelectedIds] = useState(new Set())
   const chatContainerRef = useRef(null)
   const mainInputRef = useRef(null)
   const mainTimersRef = useRef({})
@@ -970,9 +1225,9 @@ export default function App() {
   }
 
   const activeChatLabel = useMemo(() => {
-    const match = chats.find((chat) => chat.id === activeChatId)
+    const match = chatList.find((chat) => chat.id === activeChatId)
     return match?.label || 'ChatGPT 5.2'
-  }, [activeChatId])
+  }, [activeChatId, chatList])
 
   const currentMessages = useMemo(() => {
     if (!activeChatId) return []
@@ -1301,6 +1556,78 @@ export default function App() {
     setQueueMenuId(null)
   }
 
+  const openHistoryView = () => {
+    setHistoryView(true)
+    setHistorySelectedIds(new Set())
+    setHistorySearch('')
+    setIsBranchPanelOpen(false)
+  }
+
+  const closeHistoryView = () => {
+    setHistoryView(false)
+    setHistorySelectedIds(new Set())
+  }
+
+  const toggleHistorySelect = (chatId) => {
+    setHistorySelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(chatId)) next.delete(chatId)
+      else next.add(chatId)
+      return next
+    })
+  }
+
+  const selectAllVisible = (visibleChats) => {
+    const allVisibleIds = visibleChats.map((c) => c.id)
+    const allSelected = allVisibleIds.every((id) => historySelectedIds.has(id))
+    if (allSelected) {
+      setHistorySelectedIds(new Set())
+    } else {
+      setHistorySelectedIds(new Set(allVisibleIds))
+    }
+  }
+
+  const deleteChats = (ids) => {
+    const idSet = new Set(ids)
+    setChatList((prev) => prev.filter((c) => !idSet.has(c.id)))
+    setChatStates((prev) => {
+      const next = { ...prev }
+      ids.forEach((id) => delete next[id])
+      return next
+    })
+    if (ids.includes(activeChatId)) {
+      setActiveChatId(null)
+    }
+    setHistorySelectedIds((prev) => {
+      const next = new Set(prev)
+      ids.forEach((id) => next.delete(id))
+      return next
+    })
+  }
+
+  const archiveChats = (ids) => {
+    const idSet = new Set(ids)
+    setChatList((prev) => prev.map((c) => (idSet.has(c.id) ? { ...c, archived: !c.archived } : c)))
+    if (ids.includes(activeChatId)) {
+      setActiveChatId(null)
+    }
+    setHistorySelectedIds((prev) => {
+      const next = new Set(prev)
+      ids.forEach((id) => next.delete(id))
+      return next
+    })
+  }
+
+  const moveChatsToProject = (ids, projectId) => {
+    const idSet = new Set(ids)
+    setChatList((prev) => prev.map((c) => (idSet.has(c.id) ? { ...c, projectId } : c)))
+    setHistorySelectedIds((prev) => {
+      const next = new Set(prev)
+      ids.forEach((id) => next.delete(id))
+      return next
+    })
+  }
+
   useEffect(() => {
     if (!activeBranchId) return
     setBranchInput('')
@@ -1330,6 +1657,62 @@ export default function App() {
 
   return (
     <div className="h-screen bg-gpt-bg text-gpt-text">
+      {historyView ? (
+        <div className="fixed inset-0 z-50 flex flex-col bg-gpt-bg">
+          <div className="flex items-center justify-between px-8 pt-6 pb-2">
+            <h2 className="text-lg font-medium text-white">Chat History</h2>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setHistorySortBy('date')}
+                  className={`rounded-lg px-3 py-1 text-xs transition ${
+                    historySortBy === 'date' ? 'bg-[#2b2b2b] text-white' : 'text-[#8d8d8d] hover:text-white'
+                  }`}
+                >
+                  Newest
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setHistorySortBy('name')}
+                  className={`rounded-lg px-3 py-1 text-xs transition ${
+                    historySortBy === 'name' ? 'bg-[#2b2b2b] text-white' : 'text-[#8d8d8d] hover:text-white'
+                  }`}
+                >
+                  A–Z
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={closeHistoryView}
+                className="flex h-8 w-8 items-center justify-center rounded-full text-[#9c9c9c] transition hover:bg-[#2a2a2a] hover:text-white"
+                aria-label="Close"
+              >
+                <Icon name="x" />
+              </button>
+            </div>
+          </div>
+          <ChatHistoryView
+            chats={chatList}
+            chatStatesMap={chatStates}
+            search={historySearch}
+            onSearchChange={setHistorySearch}
+            sortBy={historySortBy}
+            selectedIds={historySelectedIds}
+            onToggleSelect={toggleHistorySelect}
+            onSelectAll={selectAllVisible}
+            onOpenChat={(chatId) => {
+              setActiveChatId(chatId)
+              closeHistoryView()
+            }}
+            onDeleteChats={deleteChats}
+            onArchiveChats={archiveChats}
+            onMoveToProject={moveChatsToProject}
+            onClearSelection={() => setHistorySelectedIds(new Set())}
+            projectsList={projects}
+          />
+        </div>
+      ) : null}
       <div className="flex h-full">
         <aside className="flex h-screen w-72 flex-col bg-gpt-panel">
           <div className="px-3 pt-5">
@@ -1382,19 +1765,41 @@ export default function App() {
                 <span>See more</span>
               </button>
             </SidebarSection>
-            <SidebarSection title="Your chats">
-              {chats.map((chat) => (
-                <button
-                  key={chat.id}
-                  type="button"
-                  onClick={() => setActiveChatId(chat.id)}
-                  className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition hover:bg-[#2b2b2b] ${
-                    activeChatId === chat.id ? 'bg-[#2b2b2b] text-white' : 'text-[#cfcfcf]'
-                  }`}
-                >
-                  <span className="truncate">{chat.label}</span>
-                </button>
-              ))}
+            <SidebarSection
+              title="Your chats"
+              action={
+                <div className="group/tip relative">
+                  <button
+                    type="button"
+                    onClick={openHistoryView}
+                    className="rounded-md p-1 text-[#7b7b7b] transition hover:bg-[#2b2b2b] hover:text-white"
+                    aria-label="View all chats"
+                  >
+                    <Icon name="expand" className="h-3.5 w-3.5" />
+                  </button>
+                  <div className="pointer-events-none absolute left-1/2 top-[calc(100%+6px)] -translate-x-1/2 whitespace-nowrap rounded-lg bg-black/90 px-3 py-1.5 text-[11px] text-white opacity-0 shadow-gpt-soft transition group-hover/tip:opacity-100">
+                    View all chats
+                  </div>
+                </div>
+              }
+            >
+              {chatList
+                .filter((c) => !c.archived)
+                .map((chat) => (
+                  <button
+                    key={chat.id}
+                    type="button"
+                    onClick={() => {
+                      setActiveChatId(chat.id)
+                      closeHistoryView()
+                    }}
+                    className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition hover:bg-[#2b2b2b] ${
+                      activeChatId === chat.id && !historyView ? 'bg-[#2b2b2b] text-white' : 'text-[#cfcfcf]'
+                    }`}
+                  >
+                    <span className="truncate">{chat.label}</span>
+                  </button>
+                ))}
             </SidebarSection>
           </div>
 
@@ -1413,7 +1818,7 @@ export default function App() {
 
         <main className="relative flex flex-1 min-h-0 flex-col overflow-hidden">
           <TopBar
-            title="ChatGPT 5.2"
+            title={activeChatId ? activeChatLabel : 'ChatGPT 5.2'}
             onOpenBranches={() => {
               if (isBranchPanelOpen && branchView === 'history') {
                 setIsBranchPanelOpen(false)
