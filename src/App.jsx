@@ -629,81 +629,86 @@ const ChatInput = ({
 
   return (
     <div className="mx-auto w-full max-w-3xl px-6 pb-8">
-      {showQueueSection ? (
-        <div className="relative z-10 -mb-4 overflow-hidden rounded-[28px] border border-[#2a2a2a] bg-[#2b2b2b]/70 shadow-gpt-soft backdrop-blur-md">
-          {!hasQueue && queueingEnabled === false ? (
-            <div className="flex items-center justify-between px-4 py-3 text-xs text-[#cfcfcf]">
-              <span>Queueing is off</span>
-              <button
-                type="button"
-                onClick={onToggleQueueing}
-                className="rounded-full bg-[#2a2a2a] px-3 py-1 text-[11px] text-white hover:bg-[#333333]"
-              >
-                Turn on
-              </button>
-            </div>
-          ) : null}
-          {hasQueue ? (
-            <div className="flex flex-col">
-              {queue.map((item) => (
-                <div key={item.id} className="relative px-5 py-2">
-                  <div className="flex items-center gap-2.5 text-[13px] font-medium text-white/75">
-                    <Icon name="reply" className="h-3.5 w-3.5 text-white/35" />
-                    <span className="min-w-0 flex-1 truncate">{item.content}</span>
-                    <div className="flex items-center gap-2 text-white/40">
+      <form
+        onSubmit={handleSubmit}
+        className={`relative z-0 overflow-hidden border border-[#2a2a2a] bg-[#2b2b2b] shadow-gpt-soft ${
+          quote || hasQueue ? 'rounded-[20px]' : 'rounded-full'
+        }`}
+      >
+        {showQueueSection ? (
+          <div className="border-b border-[#2a2a2a] bg-[#1f1f1f]">
+            {!hasQueue && queueingEnabled === false ? (
+              <div className="flex items-center justify-between px-5 py-3 text-xs text-[#cfcfcf]">
+                <span>Queueing is off</span>
+                <button
+                  type="button"
+                  onClick={onToggleQueueing}
+                  className="rounded-full bg-[#2a2a2a] px-3 py-1 text-[11px] text-white hover:bg-[#333333]"
+                >
+                  Turn on
+                </button>
+              </div>
+            ) : null}
+            {hasQueue
+              ? queue.map((item, index) => (
+                  <div
+                    key={item.id}
+                    className="relative flex items-center justify-between px-5 py-1.5 transition hover:bg-[#242424]"
+                  >
+                    <div className="flex min-w-0 flex-1 items-center gap-3">
+                      <Icon name="reply" className="h-4 w-4 shrink-0 text-[#6b6b6b]" />
+                      <span className="min-w-0 flex-1 truncate text-sm text-[#cfcfcf]">{item.content}</span>
+                    </div>
+                    <div className="ml-4 flex shrink-0 items-center gap-1">
                       <button
                         type="button"
                         onClick={() => onSendNow(item.id)}
-                        className="rounded-lg p-1 hover:bg-white/5 hover:text-white"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-[#9b9b9b] transition hover:bg-[#2a2a2a] hover:text-white"
+                        aria-label="Send now"
                       >
-                        <Icon name="arrow-up" className="h-3.5 w-3.5" />
+                        <Icon name="arrow-up" className="h-4 w-4" />
                       </button>
                       <button
                         type="button"
                         onClick={() => onDeleteQueueItem(item.id)}
-                        className="rounded-lg p-1 hover:bg-white/5 hover:text-white"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-[#9b9b9b] transition hover:bg-[#2a2a2a] hover:text-white"
+                        aria-label="Delete"
                       >
-                        <Icon name="trash" className="h-3.5 w-3.5" />
+                        <Icon name="trash" className="h-4 w-4" />
                       </button>
                       <button
                         type="button"
                         onClick={() => onToggleQueueMenu(item.id)}
-                        className="rounded-lg p-1 hover:bg-white/5 hover:text-white"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-[#9b9b9b] transition hover:bg-[#2a2a2a] hover:text-white"
+                        aria-label="More options"
                       >
-                        <Icon name="dots" className="h-3.5 w-3.5" />
+                        <Icon name="dots" className="h-4 w-4" />
                       </button>
                     </div>
+                    {queueMenuId === item.id ? (
+                      <div className="absolute right-2 top-[calc(100%+8px)] z-20 w-48 rounded-xl border border-[#2a2a2a] bg-[#1f1f1f] p-2 text-xs text-[#e0e0e0] shadow-gpt-soft">
+                        <button
+                          type="button"
+                          onClick={() => onEditQueueItem(item.id)}
+                          className="flex w-full items-center rounded-lg px-3 py-2 text-left hover:bg-[#2a2a2a]"
+                        >
+                          Edit message
+                        </button>
+                        <button
+                          type="button"
+                          onClick={onToggleQueueing}
+                          className="flex w-full items-center rounded-lg px-3 py-2 text-left hover:bg-[#2a2a2a]"
+                        >
+                          {queueingEnabled ? 'Turn off queueing' : 'Turn on queueing'}
+                        </button>
+                      </div>
+                    ) : null}
                   </div>
-                  {queueMenuId === item.id ? (
-                    <div className="absolute right-2 top-[calc(100%+6px)] z-20 w-48 rounded-xl border border-[#2a2a2a] bg-[#1f1f1f] p-2 text-xs text-[#e0e0e0] shadow-gpt-soft">
-                      <button
-                        type="button"
-                        onClick={() => onEditQueueItem(item.id)}
-                        className="flex w-full items-center rounded-lg px-3 py-2 text-left hover:bg-[#2a2a2a]"
-                      >
-                        Edit message
-                      </button>
-                      <button
-                        type="button"
-                        onClick={onToggleQueueing}
-                        className="flex w-full items-center rounded-lg px-3 py-2 text-left hover:bg-[#2a2a2a]"
-                      >
-                        {queueingEnabled ? 'Turn off queueing' : 'Turn on queueing'}
-                      </button>
-                    </div>
-                  ) : null}
-                </div>
-              ))}
-            </div>
-          ) : null}
-        </div>
-      ) : null}
-      <form
-        onSubmit={handleSubmit}
-        className={`relative z-0 border border-[#2a2a2a] bg-[#2b2b2b] shadow-gpt-soft ${
-          quote ? 'rounded-2xl px-3 py-3' : 'rounded-full px-4 py-3'
-        }`}
-      >
+                ))
+              : null}
+          </div>
+        ) : null}
+        <div className={`${hasQueue ? 'px-3 pt-3 pb-3' : quote ? 'px-3 py-3' : 'px-4 py-3'}`}>
         {quote ? (
           <div className="mb-2 flex items-center justify-between rounded-xl bg-[#3a3a3a] px-3 py-2 text-sm text-[#d6d6d6]">
             <span className="flex min-w-0 items-center gap-2 text-[#e0e0e0]">
@@ -761,6 +766,7 @@ const ChatInput = ({
               <Icon name="voice" />
             </button>
           )}
+        </div>
         </div>
       </form>
     </div>
@@ -1221,11 +1227,45 @@ export default function App() {
     if (!activeChatId) return
     const item = activeChatState.queue.find((q) => q.id === id)
     if (!item) return
+    const content = item.content
+
+    clearChatTimer(activeChatId)
     updateChatState(activeChatId, (state) => ({
       ...state,
       queue: state.queue.filter((q) => q.id !== id),
+      messages: [...state.messages, { id: `msg-${Date.now()}`, role: 'user', content }],
+      isThinking: true,
     }))
-    sendMainMessage(item.content)
+
+    const chatId = activeChatId
+    mainTimersRef.current[chatId] = window.setTimeout(() => {
+      let nextContent = null
+      updateChatState(chatId, (state) => {
+        const reply = {
+          id: `msg-${Date.now()}-a`,
+          role: 'assistant',
+          content: `Got it. Here's a quick response to: ${content}`,
+        }
+        if (state.queueingEnabled && state.queue.length > 0) {
+          const [nextItem, ...rest] = state.queue
+          nextContent = nextItem.content
+          return {
+            ...state,
+            messages: [
+              ...state.messages,
+              reply,
+              { id: `msg-${Date.now()}-q`, role: 'user', content: nextItem.content },
+            ],
+            isThinking: true,
+            queue: rest,
+          }
+        }
+        return { ...state, messages: [...state.messages, reply], isThinking: false }
+      })
+      if (nextContent) {
+        sendMainMessage(nextContent)
+      }
+    }, 3000)
   }
 
   const deleteQueued = (id) => {
