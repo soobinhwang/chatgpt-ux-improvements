@@ -53,6 +53,8 @@ const defaultChatState = {
   queueingEnabled: true,
 }
 
+const RESPONSE_DELAY_MS = 12000
+
 const chatThreads = {
   'chat-1': [
     {
@@ -1466,7 +1468,7 @@ export default function App() {
         if (nextContent) {
           scheduleResponse(nextContent)
         }
-      }, 3000)
+      }, RESPONSE_DELAY_MS)
     }
 
     scheduleResponse(trimmed)
@@ -1520,7 +1522,7 @@ export default function App() {
       if (nextContent) {
         sendMainMessage(nextContent)
       }
-    }, 3000)
+    }, RESPONSE_DELAY_MS)
   }
 
   const deleteQueued = (id) => {
