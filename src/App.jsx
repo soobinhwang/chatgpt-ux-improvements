@@ -579,7 +579,7 @@ const TopBar = ({
             <Icon name="dots" />
           </button>
           {menuOpen ? (
-            <div className="absolute right-0 top-12 w-64 rounded-2xl border border-[#2a2a2a] bg-[#1f1f1f] p-2 text-sm text-[#e0e0e0] shadow-gpt-soft">
+            <div className="absolute right-0 top-12 z-50 w-64 rounded-2xl border border-[#2a2a2a] bg-[#1f1f1f] p-2 text-sm text-[#e0e0e0] shadow-gpt-soft">
               <button type="button" className="flex w-full items-center gap-3 rounded-xl px-3 py-2 hover:bg-[#2a2a2a]">
                 <Icon name="group" />
                 <span>Start a group chat</span>
